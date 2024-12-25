@@ -28,7 +28,7 @@ const RentVisualizations = ({ monthlyData }: RentVisualizationsProps) => {
   const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
 
   const yearlyData: YearlyData[] = monthlyData
-    .filter((_, index) => index % 12 === 0)
+    .filter((_, index) => (index + 1) % 12 === 0)
     .map((month, index) => ({
       ...month,
       year: index + 1
@@ -58,7 +58,11 @@ const RentVisualizations = ({ monthlyData }: RentVisualizationsProps) => {
               <div className="flex flex-wrap gap-4 justify-center">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#82ca9d]" />
-                  <span className="text-sm">Investment Value</span>
+                  <span className="text-sm">Principal Value</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#0088FE]" />
+                  <span className="text-sm">Interest Value</span>
                 </div>
               </div>
               <div className="h-80">
@@ -79,12 +83,23 @@ const RentVisualizations = ({ monthlyData }: RentVisualizationsProps) => {
                     <Tooltip content={(props) => <CustomTooltip {...props} timeUnit={timeUnit} />} />
                     <Area
                       type="monotone"
-                      dataKey="investmentValue"
-                      name="Investment Value"
+                      dataKey="principal"
+                      name="Principal Value"
                       stroke="#82ca9d"
                       fill="#82ca9d"
                       fillOpacity={0.5}
+                      stackId="1"
                     />
+                    <Area
+                      type="monotone"
+                      dataKey="interestToDate"
+                      name="Interest Value"
+                      stroke="#0088FE"
+                      fill="#0088FE"
+                      fillOpacity={0.5}
+                      stackId="1"
+                    />
+
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

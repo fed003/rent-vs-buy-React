@@ -10,12 +10,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { MonthlyData, RentMonthlyData } from '@/utils/calculations';
+import { BuyMonthlyData, RentMonthlyData } from '@/utils/calculations';
 import { formatCurrency, dfltMargins } from '@/utils/visualizations';
 import CustomTooltip from '@/components/ui/CustomTooltip';
 
 interface ComparisonChartProps {
-  buyData: MonthlyData[] | null;
+  buyData: BuyMonthlyData[] | null;
   rentData: RentMonthlyData[] | null;
 }
 

@@ -5,6 +5,7 @@ import CustomTooltip from '@/components/ui/CustomTooltip';
 import {
   ComposedChart,
   Line,
+  LineChart,
   AreaChart,
   Area,
   XAxis,
@@ -13,14 +14,14 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import { MonthlyData } from '@/utils/calculations';
+import { BuyMonthlyData } from '@/utils/calculations';
 import { formatCurrency, dfltMargins } from '@/utils/visualizations';
 
 interface BuyVisualizationsProps {
-  monthlyData: MonthlyData[];
+  monthlyData: BuyMonthlyData[];
 }
 
-interface YearlyData extends MonthlyData {
+interface YearlyData extends BuyMonthlyData {
   year: number;
 }
 
@@ -106,7 +107,7 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
           </CardContent>
         </Card>
 
-        {/* Monthly Payment Breakdown */}
+        {/* Monthly Payment Breakdown
         <Card>
           <CardHeader>
             <CardTitle>Monthly Payment Breakdown</CardTitle>
@@ -172,7 +173,7 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Monthly Expenses */}
         <Card>
@@ -265,6 +266,59 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Cumulative payments */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Cumulative Payments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-4 justify-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#ff8042]" />
+                  <span className="text-sm">Home Value</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#0088FE]" />
+                  <span className="text-sm">Cumulative Expenses</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#82ca9d]" />
+                  <span className="text-sm">Net Value</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#8884d8]" />
+                  <span className="text-sm">Net Value After Tax</span>
+                </div>
+              </div>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={displayData} margin={dfltMargins}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey={timeUnit === 'years' ? 'year' : 'month'}
+                      label={{ value: timeUnit === 'years' ? 'Years' : 'Months', position: 'bottom', offset: 5 }}
+                    />
+                    <YAxis 
+                      tickFormatter={formatCurrency}
+                      width={80}
+                    />
+                    <Tooltip content={(props) => <CustomTooltip {...props} timeUnit={timeUnit} />} />
+                    <Line
+                      type="monotone"
+                      dataKey="cumulativePayments"
+                      name="Total Payments"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
        {/* Net Value Chart - Updated with Areas and Lines */}
       <Card>

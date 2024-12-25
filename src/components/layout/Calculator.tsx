@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,20 +7,61 @@ import CalculatorForm from './CalculatorForm';
 import BuyVisualizations from './BuyVisualizations';
 import RentVisualizations from './RentVisualizations';
 import ComparisonChart from './ComparisonChart';
-import { MonthlyData, RentMonthlyData, generateMonthlyData, generateRentMonthlyData, CalculationInputs } from '@/utils/calculations';
+import { BuyInputs, RentInputs, BuyMonthlyData, RentMonthlyData, generateBuyMonthlyData, generateRentMonthlyData, CalculationInputs } from '@/utils/calculations';
+
+const STORAGE_KEYS = {
+  BUY_INPUTS: 'buyCalculatorInputs',
+  RENT_INPUTS: 'rentCalculatorInputs'
+};
 
 const Calculator = () => {
   const [activeTab, setActiveTab] = useState<'compare' | 'buy' | 'rent'>('compare');
   const [isOpen, setIsOpen] = useState(false);
-  const [buyResults, setBuyResults] = useState<MonthlyData[] | null>(null);
+  const [buyResults, setBuyResults] = useState<BuyMonthlyData[] | null>(null);
   const [rentResults, setRentResults] = useState<RentMonthlyData[] | null>(null);
+  const [buyInputs, setBuyInputs] = useState<BuyInputs | null>(null);
+  const [rentInputs, setRentInputs] = useState<RentInputs | null>(null);
 
-  const handleCalculations = (inputs: CalculationInputs) => {
-    const results = generateMonthlyData(inputs.buyInputs);
+  // Load saved inputs on mount
+  useEffect(() => {
+    const savedBuyInputs = localStorage.getItem(STORAGE_KEYS.BUY_INPUTS);
+    const savedRentInputs = localStorage.getItem(STORAGE_KEYS.RENT_INPUTS);
+   
+    if (savedBuyInputs) {
+      const parsedBuyInputs = JSON.parse(savedBuyInputs) as BuyInputs;
+      setBuyInputs(parsedBuyInputs);
+    }
+
+    if (savedRentInputs) {
+      const parsedRentInputs = JSON.parse(savedRentInputs) as RentInputs;
+      setRentInputs(parsedRentInputs);
+    }
+
+    if (buyInputs && rentInputs) {
+      handleCalculations({
+        buyInputs,
+        rentInputs,
+      }, false);
+    }
+  }, []);
+
+
+  const getMonthsToCalculate = (inputs: CalculationInputs) => {
+    const buyMonths = Number.parseInt(inputs.buyInputs.mortgageYears) * 12;
+    return buyMonths;
+  }
+
+  const handleCalculations = (inputs: CalculationInputs, saveValues: boolean = true) => {
+    const results = generateBuyMonthlyData(inputs.buyInputs);
     setBuyResults(results);
     
-    const rentResults = generateRentMonthlyData(inputs.rentInputs, inputs.monthsToCalculate);
+    const rentResults = generateRentMonthlyData(inputs.rentInputs, getMonthsToCalculate(inputs), results);
     setRentResults(rentResults);
+
+    if (saveValues) {
+      localStorage.setItem(STORAGE_KEYS.BUY_INPUTS, JSON.stringify(inputs.buyInputs));
+      localStorage.setItem(STORAGE_KEYS.RENT_INPUTS, JSON.stringify(inputs.rentInputs));
+    }
   };
 
   return (
@@ -43,6 +84,8 @@ const Calculator = () => {
         >
           <div className="h-full py-6">
             <CalculatorForm 
+              buyInputValues={buyInputs}
+              rentInputValues={rentInputs}
               onCalculate={handleCalculations}
             />
           </div>

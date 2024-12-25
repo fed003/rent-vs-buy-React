@@ -10,13 +10,40 @@ import { BuyInputs, RentInputs, CalculationInputs } from '@/utils/calculations';
 type CalculationType = 'buy' | 'rent';
 
 interface CalculatorFormProps {
+  buyInputValues: BuyInputs | null;
+  rentInputValues: RentInputs | null;
   onCalculate: (inputs: CalculationInputs ) => void;
 }
 
-const CalculatorForm = ({ onCalculate }: CalculatorFormProps) => {
+const CalculatorForm = ({ buyInputValues, rentInputValues, onCalculate }: CalculatorFormProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [calculationType, setCalculationType] = useState<CalculationType>('buy');
-  
+   
+  // Buy inputs state
+  const [buyInputs, setBuyInputs] = useState<BuyInputs>(
+    buyInputValues ??
+    {
+      housePrice: '650000',
+      downPaymentPercent: '20',
+      downPaymentAmount: '130000',
+      mortgageRate: '6.5',
+      mortgageYears: '30',
+      zipcode: '92101',
+      appreciationRate: '3',
+      annualInsurance: '2000',
+      insuranceIncreaseRate: '3',
+      propertyTax: '7150',
+      propertyTaxIncreaseRate: '2',
+      monthlyHOA: '600',
+      hoaIncreaseRate: '3',
+      buyClosingCostPercent: '2',
+      sellClosingCostPercent: '8',
+      maintenancePercent: '1',
+      maintenanceAmount: '6500',
+      federalTaxRate: '18',
+      stateTaxRate: '7'
+    }
+  );
 
   const calculateInitialInvestment = () => {
     const downPayment = parseFloat(buyInputs.downPaymentAmount);
@@ -27,37 +54,17 @@ const CalculatorForm = ({ onCalculate }: CalculatorFormProps) => {
     return 0;
   };
 
-  // Buy inputs state
-  const [buyInputs, setBuyInputs] = useState<BuyInputs>({
-    housePrice: '650000',
-    downPaymentPercent: '20',
-    downPaymentAmount: '130000',
-    mortgageRate: '6.5',
-    mortgageYears: '30',
-    zipcode: '92101',
-    appreciationRate: '3',
-    annualInsurance: '2000',
-    insuranceIncreaseRate: '3',
-    propertyTax: '7150',
-    propertyTaxIncreaseRate: '2',
-    monthlyHOA: '600',
-    hoaIncreaseRate: '3',
-    buyClosingCostPercent: '2',
-    sellClosingCostPercent: '8',
-    maintenancePercent: '1',
-    maintenanceAmount: '6500',
-    federalTaxRate: '18',
-    stateTaxRate: '7'
-  });
-
   // Rent inputs state
-  const [rentInputs, setRentInputs] = useState<RentInputs>({
-    monthlyRent: '3250',
-    rentIncreaseRate: '5',
-    rentersInsurance: '200',
-    initialInvestment: calculateInitialInvestment().toString(),
-    investmentReturnRate: '7'
-  });
+  const [rentInputs, setRentInputs] = useState<RentInputs>(
+    rentInputValues ??
+    {
+      monthlyRent: '3250',
+      rentIncreaseRate: '5',
+      rentersInsurance: '200',
+      initialInvestment: calculateInitialInvestment().toString(),
+      investmentReturnRate: '7'
+    }
+  );
 
   // Update advanced buy inputs when house price changes
   useEffect(() => {
@@ -118,7 +125,6 @@ const CalculatorForm = ({ onCalculate }: CalculatorFormProps) => {
     const inputs: CalculationInputs = {
       buyInputs,
       rentInputs,
-      monthsToCalculate: parseInt(buyInputs.mortgageYears) * 12
     };
     onCalculate(inputs);
   };

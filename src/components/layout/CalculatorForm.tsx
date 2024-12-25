@@ -47,7 +47,9 @@ const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps
     buyClosingCostPercent: '2',
     sellClosingCostPercent: '8',
     maintenancePercent: '1',
-    maintenanceAmount: '6500'
+    maintenanceAmount: '6500',
+    federalTaxRate: '18',
+    stateTaxRate: '7'
   });
 
   // Rent inputs state
@@ -329,6 +331,28 @@ const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps
                     type="number"
                     name="maintenanceAmount"
                     value={buyInputs.maintenanceAmount}
+                    onChange={handleBuyInputChange}
+                    className="bg-background border-2 focus:border-primary hover:bg-accent hover:bg-opacity-50"
+                  />
+                </InputWrapper>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <InputWrapper label="Federal Tax Rate (%)">
+                  <Input
+                    type="number"
+                    name="federalTaxRate"
+                    value={buyInputs.federalTaxRate}
+                    onChange={handleBuyInputChange}
+                    step="0.1"
+                    className="bg-background border-2 focus:border-primary hover:bg-accent hover:bg-opacity-50"
+                  />
+                </InputWrapper>
+                <InputWrapper label="State Tax Rate (%)">
+                  <Input
+                    type="number"
+                    name="stateTaxRate"
+                    value={buyInputs.stateTaxRate}
                     onChange={handleBuyInputChange}
                     className="bg-background border-2 focus:border-primary hover:bg-accent hover:bg-opacity-50"
                   />

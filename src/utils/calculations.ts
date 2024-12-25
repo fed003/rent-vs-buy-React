@@ -13,10 +13,12 @@ export interface BuyInputs {
 	propertyTaxIncreaseRate: string;
 	monthlyHOA: string;
 	hoaIncreaseRate: string;
-	buyClosingCostPercent: string; // Changed from closingCostPercent
-	sellClosingCostPercent: string; // New field
+	buyClosingCostPercent: string;
+	sellClosingCostPercent: string;
 	maintenancePercent: string;
 	maintenanceAmount: string;
+	federalTaxRate: string;
+	stateTaxRate: string;
 }
 
 export interface MonthlyData {
@@ -35,6 +37,9 @@ export interface MonthlyData {
 	equity: number;
 	netValue: number; // New field: house value - remaining principal - sell closing costs - cumulative payments
 	cumulativePayments: number; // New field to track total payments made
+	taxDeductions: number; // New field: accumulated tax deductions
+	taxSavings: number; // New field: value of tax savings
+	netValueAfterTax: number; // New field: net value including tax benefits
 }
 
 export interface RentInputs {
@@ -79,6 +84,17 @@ const calculatePMI = (houseValue: number, loanBalance: number): number => {
 	return 0;
 };
 
+const calculateTaxSavings = (
+	interestPaid: number,
+	propertyTax: number,
+	federalTaxRate: number,
+	stateTaxRate: number
+): number => {
+	const combinedTaxRate = (federalTaxRate + stateTaxRate) / 100;
+	const deductibleAmount = interestPaid + propertyTax;
+	return deductibleAmount * combinedTaxRate;
+};
+
 export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 	const {
 		housePrice,
@@ -95,6 +111,8 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 		sellClosingCostPercent,
 		maintenancePercent,
 		maintenanceAmount,
+		federalTaxRate,
+		stateTaxRate,
 	} = inputs;
 
 	const loanAmount = parseFloat(housePrice) - parseFloat(downPaymentAmount);
@@ -107,7 +125,8 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 	let currentPrincipal = loanAmount;
 	let cumulativePayments =
 		parseFloat(downPaymentAmount) +
-		(parseFloat(housePrice) * parseFloat(inputs.buyClosingCostPercent)) / 100; // Include initial costs
+		(parseFloat(housePrice) * parseFloat(inputs.buyClosingCostPercent)) / 100;
+	let cumulativeTaxSavings = 0;
 	const monthlyRate = parseFloat(mortgageRate) / 100 / 12;
 	const monthlyData: MonthlyData[] = [];
 	const totalMonths = parseFloat(mortgageYears) * 12;
@@ -116,6 +135,8 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 	let currentInsurance = parseFloat(annualInsurance) / 12;
 	let currentPropertyTax = parseFloat(propertyTax) / 12;
 	let currentHOA = parseFloat(monthlyHOA);
+	let yearlyInterestPaid = 0;
+	let yearlyPropertyTaxPaid = 0;
 	let currentMaintenance = maintenancePercent
 		? (currentHouseValue * parseFloat(maintenancePercent)) / 100 / 12
 		: parseFloat(maintenanceAmount) / 12;
@@ -125,8 +146,26 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 		const monthlyPrincipal = monthlyPayment - monthlyInterest;
 		const monthlyPMI = calculatePMI(currentHouseValue, currentPrincipal);
 
+		// Accumulate yearly deductible amounts
+		yearlyInterestPaid += monthlyInterest;
+		yearlyPropertyTaxPaid += currentPropertyTax;
+
 		const monthlyAppreciationRate = parseFloat(appreciationRate) / 100 / 12;
 		currentHouseValue *= 1 + monthlyAppreciationRate;
+
+		// Calculate tax savings at the end of each year or on the final month
+		if ((month + 1) % 12 === 0 || month === totalMonths - 1) {
+			const annualTaxSavings = calculateTaxSavings(
+				yearlyInterestPaid,
+				yearlyPropertyTaxPaid,
+				parseFloat(federalTaxRate),
+				parseFloat(stateTaxRate)
+			);
+			cumulativeTaxSavings += annualTaxSavings;
+			// Reset yearly accumulators
+			yearlyInterestPaid = 0;
+			yearlyPropertyTaxPaid = 0;
+		}
 
 		if (month > 0 && month % 12 === 0) {
 			currentInsurance *= 1 + parseFloat(insuranceIncreaseRate) / 100;
@@ -156,9 +195,10 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 		const sellingCosts =
 			currentHouseValue * (parseFloat(sellClosingCostPercent) / 100);
 
-		// Calculate net value (house value - remaining principal - selling costs - cumulative payments)
+		// Calculate net values
 		const netValue =
 			currentHouseValue - currentPrincipal - sellingCosts - cumulativePayments;
+		const netValueAfterTax = netValue + cumulativeTaxSavings;
 
 		monthlyData.push({
 			month: month + 1,
@@ -176,6 +216,9 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 			equity: currentHouseValue - currentPrincipal,
 			netValue: netValue,
 			cumulativePayments: cumulativePayments,
+			taxDeductions: yearlyInterestPaid + yearlyPropertyTaxPaid,
+			taxSavings: cumulativeTaxSavings,
+			netValueAfterTax: netValueAfterTax,
 		});
 
 		currentPrincipal -= monthlyPrincipal;

@@ -1,21 +1,19 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-// import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InputWrapper from '@/components/ui/InputWrapper';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { BuyInputs, RentInputs } from '@/utils/calculations';
+import { BuyInputs, RentInputs, CalculationInputs } from '@/utils/calculations';
 
 type CalculationType = 'buy' | 'rent';
 
 interface CalculatorFormProps {
-  onBuyCalculate: (inputs: BuyInputs) => void;
-  onRentCalculate: (inputs: RentInputs, monthsToCalculate: number) => void;
+  onCalculate: (inputs: CalculationInputs ) => void;
 }
 
-const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps) => {
+const CalculatorForm = ({ onCalculate }: CalculatorFormProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [calculationType, setCalculationType] = useState<CalculationType>('buy');
   
@@ -117,11 +115,12 @@ const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps
 
   const handleCalculate = (e: FormEvent) => {
     e.preventDefault();
-    if (calculationType === 'buy') {
-      onBuyCalculate(buyInputs);
-    } else {
-      onRentCalculate(rentInputs, parseInt(buyInputs.mortgageYears) * 12);
-    }
+    const inputs: CalculationInputs = {
+      buyInputs,
+      rentInputs,
+      monthsToCalculate: parseInt(buyInputs.mortgageYears) * 12
+    };
+    onCalculate(inputs);
   };
 
   return (
@@ -414,7 +413,7 @@ const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps
 
       {/* Submit Button - Outside of tabs content */}
       <Button type="submit" className="w-full my-4">
-        Calculate {calculationType === 'buy' ? 'Purchase' : 'Rent'} Analysis
+        Update Analysis
       </Button>
     </Tabs>
   </form>

@@ -21,6 +21,20 @@ export interface BuyInputs {
 	stateTaxRate: string;
 }
 
+export interface RentInputs {
+	monthlyRent: string;
+	rentIncreaseRate: string;
+	rentersInsurance: string;
+	initialInvestment: string; // This will be the equivalent of down payment + closing costs
+	investmentReturnRate: string;
+}
+
+export interface CalculationInputs {
+	buyInputs: BuyInputs;
+	rentInputs: RentInputs;
+	monthsToCalculate: number;
+}
+
 export interface MonthlyData {
 	month: number;
 	houseValue: number;
@@ -40,14 +54,6 @@ export interface MonthlyData {
 	taxDeductions: number; // New field: accumulated tax deductions
 	taxSavings: number; // New field: value of tax savings
 	netValueAfterTax: number; // New field: net value including tax benefits
-}
-
-export interface RentInputs {
-	monthlyRent: string;
-	rentIncreaseRate: string;
-	rentersInsurance: string;
-	initialInvestment: string; // This will be the equivalent of down payment + closing costs
-	investmentReturnRate: string;
 }
 
 export interface RentMonthlyData {

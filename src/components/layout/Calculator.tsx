@@ -6,26 +6,21 @@ import { Menu } from "lucide-react";
 import CalculatorForm from './CalculatorForm';
 import BuyVisualizations from './BuyVisualizations';
 import RentVisualizations from './RentVisualizations';
-import { BuyInputs, RentInputs, MonthlyData, RentMonthlyData, generateMonthlyData, generateRentMonthlyData } from '@/utils/calculations';
-
-type CalculationType = 'buy' | 'rent';
+import ComparisonChart from './ComparisonChart';
+import { MonthlyData, RentMonthlyData, generateMonthlyData, generateRentMonthlyData, CalculationInputs } from '@/utils/calculations';
 
 const Calculator = () => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [activeCalculator, setActiveCalculator] = useState<CalculationType>('buy');
+  const [activeTab, setActiveTab] = useState<'compare' | 'buy' | 'rent'>('compare');
+  const [isOpen, setIsOpen] = useState(false);
   const [buyResults, setBuyResults] = useState<MonthlyData[] | null>(null);
   const [rentResults, setRentResults] = useState<RentMonthlyData[] | null>(null);
 
-  const handleBuyCalculation = (inputs: BuyInputs) => {
-    const results = generateMonthlyData(inputs);
+  const handleCalculations = (inputs: CalculationInputs) => {
+    const results = generateMonthlyData(inputs.buyInputs);
     setBuyResults(results);
-    setActiveCalculator('buy');
-  };
-
-  const handleRentCalculation = (inputs: RentInputs, monthsToCalculate: number) => {
-    const results = generateRentMonthlyData(inputs, monthsToCalculate);
-    setRentResults(results);
-    setActiveCalculator('rent');
+    
+    const rentResults = generateRentMonthlyData(inputs.rentInputs, inputs.monthsToCalculate);
+    setRentResults(rentResults);
   };
 
   return (
@@ -48,8 +43,7 @@ const Calculator = () => {
         >
           <div className="h-full py-6">
             <CalculatorForm 
-              onBuyCalculate={handleBuyCalculation}
-              onRentCalculate={handleRentCalculation}
+              onCalculate={handleCalculations}
             />
           </div>
         </SheetContent>
@@ -60,17 +54,22 @@ const Calculator = () => {
         <div className="max-w-7xl mx-auto">
           {(buyResults || rentResults) && (
             <Tabs 
-              value={activeCalculator}
-              onValueChange={(value) => setActiveCalculator(value as CalculationType)}
+              value={activeTab}
+              onValueChange={(value) => setActiveTab(value as 'compare' | 'buy' | 'rent')}
               className="mb-8"
             >
               <div className="flex justify-center">
-                <TabsList className="grid w-[400px] grid-cols-2">
+                <TabsList className="grid w-[600px] grid-cols-3">
+                  <TabsTrigger value="compare">Compare Options</TabsTrigger>
                   <TabsTrigger value="buy">Purchase Analysis</TabsTrigger>
                   <TabsTrigger value="rent">Rental Analysis</TabsTrigger>
                 </TabsList>
               </div>
 
+              <TabsContent value="compare">
+                <ComparisonChart buyData={buyResults} rentData={rentResults} />
+              </TabsContent>
+              
               <TabsContent value="buy">
                 {buyResults && <BuyVisualizations monthlyData={buyResults} />}
               </TabsContent>

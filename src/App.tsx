@@ -1,11 +1,11 @@
 import './styles/globals.css';
-import BuyCalculator from './components/buy/BuyCalculator';
+import Calculator from './components/layout/Calculator';
 
 function App() {
   return (
     <div className="min-h-screen bg-background">
       <main className="container py-6">
-        <BuyCalculator />
+        <Calculator />
       </main>
     </div>
   );

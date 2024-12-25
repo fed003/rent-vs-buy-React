@@ -18,6 +18,14 @@ export interface BuyInputs {
 	maintenanceAmount: string;
 }
 
+export interface RentInputs {
+	monthlyRent: string;
+	rentIncreaseRate: string;
+	rentersInsurance: string;
+	initialInvestment: string; // This will be the equivalent of down payment + closing costs
+	investmentReturnRate: string;
+}
+
 export interface MonthlyData {
 	month: number;
 	houseValue: number;
@@ -32,6 +40,15 @@ export interface MonthlyData {
 	maintenance: number;
 	totalMonthly: number;
 	equity: number;
+}
+
+export interface RentMonthlyData {
+	month: number;
+	rent: number;
+	insurance: number;
+	investmentValue: number;
+	totalMonthly: number;
+	totalWealth: number; // investment value only since no equity
 }
 
 // Utility functions
@@ -140,6 +157,51 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 		});
 
 		currentPrincipal -= monthlyPrincipal;
+	}
+
+	return monthlyData;
+};
+
+// Rent calculations
+export const generateRentMonthlyData = (
+	inputs: RentInputs,
+	numberOfMonths: number
+): RentMonthlyData[] => {
+	const {
+		monthlyRent,
+		rentIncreaseRate,
+		rentersInsurance,
+		initialInvestment,
+		investmentReturnRate,
+	} = inputs;
+
+	let currentRent = parseFloat(monthlyRent);
+	let currentInsurance = parseFloat(rentersInsurance) / 12;
+	let currentInvestmentValue = parseFloat(initialInvestment);
+	const monthlyData: RentMonthlyData[] = [];
+
+	for (let month = 0; month < numberOfMonths; month++) {
+		// Calculate monthly investment return (compounding monthly)
+		const monthlyReturnRate = parseFloat(investmentReturnRate) / 100 / 12;
+		currentInvestmentValue *= 1 + monthlyReturnRate;
+
+		// Update rent and insurance annually
+		if (month > 0 && month % 12 === 0) {
+			currentRent *= 1 + parseFloat(rentIncreaseRate) / 100;
+			// Assuming insurance increases at the same rate as rent
+			currentInsurance *= 1 + parseFloat(rentIncreaseRate) / 100;
+		}
+
+		const totalMonthly = currentRent + currentInsurance;
+
+		monthlyData.push({
+			month: month + 1,
+			rent: currentRent,
+			insurance: currentInsurance,
+			investmentValue: currentInvestmentValue,
+			totalMonthly: totalMonthly,
+			totalWealth: currentInvestmentValue,
+		});
 	}
 
 	return monthlyData;

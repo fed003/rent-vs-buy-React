@@ -13,17 +13,10 @@ export interface BuyInputs {
 	propertyTaxIncreaseRate: string;
 	monthlyHOA: string;
 	hoaIncreaseRate: string;
-	closingCostPercent: string;
+	buyClosingCostPercent: string; // Changed from closingCostPercent
+	sellClosingCostPercent: string; // New field
 	maintenancePercent: string;
 	maintenanceAmount: string;
-}
-
-export interface RentInputs {
-	monthlyRent: string;
-	rentIncreaseRate: string;
-	rentersInsurance: string;
-	initialInvestment: string; // This will be the equivalent of down payment + closing costs
-	investmentReturnRate: string;
 }
 
 export interface MonthlyData {
@@ -40,6 +33,16 @@ export interface MonthlyData {
 	maintenance: number;
 	totalMonthly: number;
 	equity: number;
+	netValue: number; // New field: house value - remaining principal - sell closing costs - cumulative payments
+	cumulativePayments: number; // New field to track total payments made
+}
+
+export interface RentInputs {
+	monthlyRent: string;
+	rentIncreaseRate: string;
+	rentersInsurance: string;
+	initialInvestment: string; // This will be the equivalent of down payment + closing costs
+	investmentReturnRate: string;
 }
 
 export interface RentMonthlyData {
@@ -49,6 +52,8 @@ export interface RentMonthlyData {
 	investmentValue: number;
 	totalMonthly: number;
 	totalWealth: number; // investment value only since no equity
+	netValue: number; // New field
+	cumulativePayments: number; // New field
 }
 
 // Utility functions
@@ -87,6 +92,7 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 		propertyTaxIncreaseRate,
 		monthlyHOA,
 		hoaIncreaseRate,
+		sellClosingCostPercent,
 		maintenancePercent,
 		maintenanceAmount,
 	} = inputs;
@@ -99,6 +105,9 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 	);
 
 	let currentPrincipal = loanAmount;
+	let cumulativePayments =
+		parseFloat(downPaymentAmount) +
+		(parseFloat(housePrice) * parseFloat(inputs.buyClosingCostPercent)) / 100; // Include initial costs
 	const monthlyRate = parseFloat(mortgageRate) / 100 / 12;
 	const monthlyData: MonthlyData[] = [];
 	const totalMonths = parseFloat(mortgageYears) * 12;
@@ -140,6 +149,17 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 			currentHOA +
 			currentMaintenance;
 
+		// Update cumulative payments
+		cumulativePayments += totalMonthly;
+
+		// Calculate selling costs
+		const sellingCosts =
+			currentHouseValue * (parseFloat(sellClosingCostPercent) / 100);
+
+		// Calculate net value (house value - remaining principal - selling costs - cumulative payments)
+		const netValue =
+			currentHouseValue - currentPrincipal - sellingCosts - cumulativePayments;
+
 		monthlyData.push({
 			month: month + 1,
 			houseValue: currentHouseValue,
@@ -154,6 +174,8 @@ export const generateMonthlyData = (inputs: BuyInputs): MonthlyData[] => {
 			maintenance: currentMaintenance,
 			totalMonthly: totalMonthly,
 			equity: currentHouseValue - currentPrincipal,
+			netValue: netValue,
+			cumulativePayments: cumulativePayments,
 		});
 
 		currentPrincipal -= monthlyPrincipal;
@@ -178,6 +200,7 @@ export const generateRentMonthlyData = (
 	let currentRent = parseFloat(monthlyRent);
 	let currentInsurance = parseFloat(rentersInsurance) / 12;
 	let currentInvestmentValue = parseFloat(initialInvestment);
+	let cumulativePayments = 0;
 	const monthlyData: RentMonthlyData[] = [];
 
 	for (let month = 0; month < numberOfMonths; month++) {
@@ -193,6 +216,10 @@ export const generateRentMonthlyData = (
 		}
 
 		const totalMonthly = currentRent + currentInsurance;
+		cumulativePayments += totalMonthly;
+
+		// Calculate net value (investment value minus all payments made)
+		const netValue = currentInvestmentValue - cumulativePayments;
 
 		monthlyData.push({
 			month: month + 1,
@@ -201,6 +228,8 @@ export const generateRentMonthlyData = (
 			investmentValue: currentInvestmentValue,
 			totalMonthly: totalMonthly,
 			totalWealth: currentInvestmentValue,
+			netValue: netValue,
+			cumulativePayments: cumulativePayments,
 		});
 	}
 

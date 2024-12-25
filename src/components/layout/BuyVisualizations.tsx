@@ -11,10 +11,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
+  ResponsiveContainer
 } from 'recharts';
 import { MonthlyData } from '@/utils/calculations';
-import { dfltMargins, formatCurrency } from '@/utils/visualizations';
+import { formatCurrency, dfltMargins } from '@/utils/visualizations';
 
 interface BuyVisualizationsProps {
   monthlyData: MonthlyData[];
@@ -23,7 +23,6 @@ interface BuyVisualizationsProps {
 interface YearlyData extends MonthlyData {
   year: number;
 }
-
 
 const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
   const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
@@ -185,18 +184,22 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
               <div className="flex flex-wrap gap-4 justify-center">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#8884d8]" />
-                  <span className="text-sm">Insurance</span>
+                  <span className="text-sm">Mortgage</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#82ca9d]" />
-                  <span className="text-sm">Property Tax</span>
+                  <span className="text-sm">Insurance</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#ffc658]" />
-                  <span className="text-sm">HOA</span>
+                  <span className="text-sm">Property Tax</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#ff8042]" />
+                  <span className="text-sm">HOA</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#8dd1e1]" />
                   <span className="text-sm">Maintenance</span>
                 </div>
               </div>
@@ -218,35 +221,43 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
                     <Tooltip content={(props) => <CustomTooltip {...props} timeUnit={timeUnit} />} />
                     <Area
                       type="monotone"
-                      dataKey="insurance"
-                      name="Insurance"
+                      dataKey="payment"
+                      name="Mortgage"
                       stackId="1"
                       stroke="#8884d8"
                       fill="#8884d8"
                     />
                     <Area
                       type="monotone"
-                      dataKey="propertyTax"
-                      name="Property Tax"
+                      dataKey="insurance"
+                      name="Insurance"
                       stackId="1"
                       stroke="#82ca9d"
                       fill="#82ca9d"
                     />
                     <Area
                       type="monotone"
-                      dataKey="hoa"
-                      name="HOA"
+                      dataKey="propertyTax"
+                      name="Property Tax"
                       stackId="1"
                       stroke="#ffc658"
                       fill="#ffc658"
                     />
                     <Area
                       type="monotone"
-                      dataKey="maintenance"
-                      name="Maintenance"
+                      dataKey="hoa"
+                      name="HOA"
                       stackId="1"
                       stroke="#ff8042"
                       fill="#ff8042"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="maintenance"
+                      name="Maintenance"
+                      stackId="1"
+                      stroke="#8dd1e1"
+                      fill="#8dd1e1"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -255,17 +266,17 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
           </CardContent>
         </Card>
 
-        {/* Total Monthly Cost */}
+        {/* Net Value Chart (Replacing Total Monthly Cost) */}
         <Card>
           <CardHeader>
-            <CardTitle>Total Monthly Cost</CardTitle>
+            <CardTitle>Net Value Over Time</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex flex-wrap gap-4 justify-center">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-[#8884d8]" />
-                  <span className="text-sm">Total Cost</span>
+                  <span className="text-sm">Net Value</span>
                 </div>
               </div>
               <div className="h-80">
@@ -286,8 +297,8 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
                     <Tooltip content={(props) => <CustomTooltip {...props} timeUnit={timeUnit} />} />
                     <Line
                       type="monotone"
-                      dataKey="totalMonthly"
-                      name="Total Cost"
+                      dataKey="netValue"
+                      name="Net Value"
                       stroke="#8884d8"
                       strokeWidth={2}
                     />

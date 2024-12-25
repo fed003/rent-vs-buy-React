@@ -22,7 +22,7 @@ const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps
 
   const calculateInitialInvestment = () => {
     const downPayment = parseFloat(buyInputs.downPaymentAmount);
-    const closingCosts = parseFloat(buyInputs.housePrice) * (parseFloat(buyInputs.closingCostPercent) / 100);
+    const closingCosts = parseFloat(buyInputs.housePrice) * (parseFloat(buyInputs.buyClosingCostPercent) / 100);
     if (!isNaN(downPayment) && !isNaN(closingCosts)) {
       return downPayment + closingCosts;
     }
@@ -44,7 +44,8 @@ const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps
     propertyTaxIncreaseRate: '2',
     monthlyHOA: '600',
     hoaIncreaseRate: '3',
-    closingCostPercent: '8',
+    buyClosingCostPercent: '2',
+    sellClosingCostPercent: '8',
     maintenancePercent: '1',
     maintenanceAmount: '6500'
   });
@@ -77,7 +78,7 @@ const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps
         ...prev,
         initialInvestment: calculateInitialInvestment().toString()
       }));
-  }, [buyInputs.downPaymentAmount, buyInputs.housePrice, buyInputs.closingCostPercent]);
+  }, [buyInputs.downPaymentAmount, buyInputs.housePrice, buyInputs.buyClosingCostPercent]);
 
   // Handle down payment calculations
   useEffect(() => {
@@ -289,16 +290,28 @@ const CalculatorForm = ({ onBuyCalculate, onRentCalculate }: CalculatorFormProps
                 </InputWrapper>
               </div>
 
-              <InputWrapper label="Closing Costs (%)">
-                <Input
-                  type="number"
-                  name="closingCostPercent"
-                  value={buyInputs.closingCostPercent}
-                  onChange={handleBuyInputChange}
-                  step="0.1"
-                  className="bg-background border-2 focus:border-primary hover:bg-accent hover:bg-opacity-50"
-                />
-              </InputWrapper>
+              <div className="grid grid-cols-2 gap-4">
+                <InputWrapper label="Buy Closing Costs (%)">
+                  <Input
+                    type="number"
+                    name="buyClosingCostPercent"
+                    value={buyInputs.buyClosingCostPercent}
+                    onChange={handleBuyInputChange}
+                    step="0.1"
+                    className="bg-background border-2 focus:border-primary hover:bg-accent hover:bg-opacity-50"
+                  />
+                </InputWrapper>
+                <InputWrapper label="Sell Closing Costs (%)">
+                  <Input
+                    type="number"
+                    name="sellClosingCostPercent"
+                    value={buyInputs.sellClosingCostPercent}
+                    onChange={handleBuyInputChange}
+                    step="0.1"
+                    className="bg-background border-2 focus:border-primary hover:bg-accent hover:bg-opacity-50"
+                  />
+                </InputWrapper>
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <InputWrapper label="Annual Maintenance (%)">

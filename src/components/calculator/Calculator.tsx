@@ -36,48 +36,26 @@ const Calculator = () => {
   const [activeTab, setActiveTab] = useState<'assumptions' | 'compare' | 'buy' | 'rent'>(isOpen ? 'assumptions' : 'compare');
   
   const handleCalculations = (inputs: CalculationInputs, saveValues: boolean = true) => {
-    console.log('Calculating...');
-    console.log('Inputs:', inputs, saveValues);
-
     setBuyInputs(inputs.buyInputs);
     setRentInputs(inputs.rentInputs);
 
     const generatedBuyResults = generateBuyMonthlyData(inputs.buyInputs);
     setBuyResults(generatedBuyResults);
-    console.log('Buy Results:', generatedBuyResults, buyResults);
 
     const generatedRentResults = generateRentMonthlyData(inputs.rentInputs, getMonthsToCalculate(inputs), generatedBuyResults);
     setRentResults(generatedRentResults);
-    console.log('Rent Results:', generatedRentResults, rentResults);
-    
+        
     if (buyResults && rentResults) {
-      console.log('Enabling Tabs');
       setDisableTabs(false);
       setActiveTab('compare');
       setIsOpen(false);
     }
 
     if (saveValues) {
-      console.log('Saving Inputs...');
       localStorage.setItem(STORAGE_KEYS.BUY_INPUTS, JSON.stringify(inputs.buyInputs));
       localStorage.setItem(STORAGE_KEYS.RENT_INPUTS, JSON.stringify(inputs.rentInputs));
     }
   };
-
-  // Load saved inputs on mount
-  // useEffect(() => {
-  //   console.log('on mount');
-  //   const savedBuyInputs = localStorage.getItem(STORAGE_KEYS.BUY_INPUTS);
-  //   const savedRentInputs = localStorage.getItem(STORAGE_KEYS.RENT_INPUTS);
-  
-  //   if (savedBuyInputs && savedRentInputs) {
-  //     console.log('Loading saved inputs...');
-  //     handleCalculations({
-  //       buyInputs: JSON.parse(savedBuyInputs) as BuyInputs,
-  //       rentInputs: JSON.parse(savedRentInputs) as RentInputs,
-  //     }, false);
-  //   }
-  // }, []);
 
   return (
     <div className="relative min-h-screen">

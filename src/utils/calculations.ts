@@ -169,7 +169,10 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 		yearlyInterestPaid += monthlyInterest;
 		yearlyPropertyTaxPaid += currentPropertyTax;
 
-		const monthlyAppreciationRate = parseFloat(appreciationRate) / 100 / 12;
+		//	Increase house value based on appreciation rate
+		const monthlyAppreciationRate =
+			Math.pow(1 + parseFloat(appreciationRate) / 100, (month + 1) / 12) -
+			Math.pow(1 + parseFloat(appreciationRate) / 100, month / 12);
 		currentHouseValue *= 1 + monthlyAppreciationRate;
 
 		// Calculate tax savings at the end of each year or on the final month

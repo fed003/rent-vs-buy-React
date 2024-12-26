@@ -96,23 +96,6 @@ const CalculatorForm = ({ buyInputValues, rentInputValues, onCalculate }: Calcul
       }));
   }, [buyInputs.downPaymentAmount, buyInputs.housePrice, buyInputs.buyClosingCostPercent]);
 
-  // Handle down payment calculations
-  // useEffect(() => {
-  //   if (buyInputs.housePrice && buyInputs.downPaymentPercent) {
-  //     const amount = (parseFloat(buyInputs.housePrice) * parseFloat(buyInputs.downPaymentPercent)) / 100;
-  //     setBuyInputs(prev => ({
-  //       ...prev,
-  //       downPaymentAmount: amount.toFixed(2)
-  //     }));
-  //   } else if (buyInputs.housePrice && buyInputs.downPaymentAmount) {
-  //     const percent = (parseFloat(buyInputs.downPaymentAmount) / parseFloat(buyInputs.housePrice)) * 100;
-  //     setBuyInputs(prev => ({
-  //       ...prev,
-  //       downPaymentPercent: percent.toFixed(2)
-  //     }));
-  //   }
-  // }, [buyInputs.housePrice, buyInputs.downPaymentPercent, buyInputs.downPaymentAmount]);
-
   const setDownPaymentType = (type: 'percent' | 'amount') => {
     setBuyInputs(prev => ({
       ...prev,
@@ -144,22 +127,19 @@ const CalculatorForm = ({ buyInputValues, rentInputValues, onCalculate }: Calcul
   };
 
   const setDownPaymentPercent = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    console.log('setting down payment percent', name, buyInputs.downPaymentType, value);
+    const { value } = e.target;
     if (buyInputs.downPaymentType !== 'percent') return;
     updateDownPayment(value, 'percent');
   }
 
   const setDownPaymentAmount = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    console.log('setting down payment amount', name, buyInputs.downPaymentType, value);
+    const { value } = e.target;
     if (buyInputs.downPaymentType !== 'amount') return;
     updateDownPayment(value, 'amount');
   }
 
   const handleBuyInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log('buy input change', name, value);
     setBuyInputs(prev => ({
       ...prev,
       [name]: value

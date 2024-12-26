@@ -15,36 +15,15 @@ const STORAGE_KEYS = {
 };
 
 const Calculator = () => {
-  const [activeTab, setActiveTab] = useState<'compare' | 'buy' | 'rent'>('compare');
+  const [activeTab, setActiveTab] = useState<'assumptions' | 'compare' | 'buy' | 'rent'>('assumptions');
   const [isOpen, setIsOpen] = useState(false);
-  const [buyResults, setBuyResults] = useState<BuyMonthlyData[] | null>(null);
-  const [rentResults, setRentResults] = useState<RentMonthlyData[] | null>(null);
+  
   const [buyInputs, setBuyInputs] = useState<BuyInputs | null>(null);
   const [rentInputs, setRentInputs] = useState<RentInputs | null>(null);
-
-  // Load saved inputs on mount
-  useEffect(() => {
-    const savedBuyInputs = localStorage.getItem(STORAGE_KEYS.BUY_INPUTS);
-    const savedRentInputs = localStorage.getItem(STORAGE_KEYS.RENT_INPUTS);
-   
-    if (savedBuyInputs) {
-      const parsedBuyInputs = JSON.parse(savedBuyInputs) as BuyInputs;
-      setBuyInputs(parsedBuyInputs);
-    }
-
-    if (savedRentInputs) {
-      const parsedRentInputs = JSON.parse(savedRentInputs) as RentInputs;
-      setRentInputs(parsedRentInputs);
-    }
-
-    if (buyInputs && rentInputs) {
-      handleCalculations({
-        buyInputs,
-        rentInputs,
-      }, false);
-    }
-  }, []);
-
+  
+  const [buyResults, setBuyResults] = useState<BuyMonthlyData[] | null>(null);
+  const [rentResults, setRentResults] = useState<RentMonthlyData[] | null>(null);
+  const [disableTabs, setDisableTabs] = useState<boolean>(true);
 
   const getMonthsToCalculate = (inputs: CalculationInputs) => {
     const buyMonths = Number.parseInt(inputs.buyInputs.mortgageYears) * 12;
@@ -52,17 +31,48 @@ const Calculator = () => {
   }
 
   const handleCalculations = (inputs: CalculationInputs, saveValues: boolean = true) => {
-    const results = generateBuyMonthlyData(inputs.buyInputs);
-    setBuyResults(results);
+    console.log('Calculating...');
+    console.log('Inputs:', inputs, saveValues);
+
+    setBuyInputs(inputs.buyInputs);
+    setRentInputs(inputs.rentInputs);
+
+    const generatedBuyResults = generateBuyMonthlyData(inputs.buyInputs);
+    setBuyResults(generatedBuyResults);
+    console.log('Buy Results:', generatedBuyResults, buyResults);
+
+    const generatedRentResults = generateRentMonthlyData(inputs.rentInputs, getMonthsToCalculate(inputs), generatedBuyResults);
+    setRentResults(generatedRentResults);
+    console.log('Rent Results:', generatedRentResults, rentResults);
     
-    const rentResults = generateRentMonthlyData(inputs.rentInputs, getMonthsToCalculate(inputs), results);
-    setRentResults(rentResults);
+    if (buyResults && rentResults) {
+      console.log('Enabling Tabs');
+      setDisableTabs(false);
+      setActiveTab('compare');
+      setIsOpen(false);
+    }
 
     if (saveValues) {
+      console.log('Saving Inputs...');
       localStorage.setItem(STORAGE_KEYS.BUY_INPUTS, JSON.stringify(inputs.buyInputs));
       localStorage.setItem(STORAGE_KEYS.RENT_INPUTS, JSON.stringify(inputs.rentInputs));
     }
   };
+
+  // Load saved inputs on mount
+  useEffect(() => {
+    console.log('on mount');
+    const savedBuyInputs = localStorage.getItem(STORAGE_KEYS.BUY_INPUTS);
+    const savedRentInputs = localStorage.getItem(STORAGE_KEYS.RENT_INPUTS);
+  
+    if (savedBuyInputs && savedRentInputs) {
+      console.log('Loading saved inputs...');
+      handleCalculations({
+        buyInputs: JSON.parse(savedBuyInputs) as BuyInputs,
+        rentInputs: JSON.parse(savedRentInputs) as RentInputs,
+      }, false);
+    }
+  }, []);
 
   return (
     <div className="relative min-h-screen">
@@ -99,19 +109,24 @@ const Calculator = () => {
       {/* Main Content Area - Charts */}
       <main className="p-6">
         <div className="max-w-7xl mx-auto">
-          {(buyResults || rentResults) && (
+          
             <Tabs 
               value={activeTab}
-              onValueChange={(value) => setActiveTab(value as 'compare' | 'buy' | 'rent')}
+              onValueChange={(value) => setActiveTab(value as 'assumptions' |'compare' | 'buy' | 'rent')}
               className="mb-8"
             >
               <div className="flex justify-center">
-                <TabsList className="grid w-[600px] grid-cols-3">
-                  <TabsTrigger value="compare">Compare Options</TabsTrigger>
-                  <TabsTrigger value="buy">Purchase Analysis</TabsTrigger>
-                  <TabsTrigger value="rent">Rental Analysis</TabsTrigger>
+                <TabsList className="grid w-[600px] grid-cols-4">
+                  <TabsTrigger value="assumptions" >Assumptions</TabsTrigger>
+                    <TabsTrigger value="compare" disabled={disableTabs}>Comparison</TabsTrigger>
+                    <TabsTrigger value="buy" disabled={disableTabs}>Purchase Analysis</TabsTrigger>
+                    <TabsTrigger value="rent" disabled={disableTabs}>Rental Analysis</TabsTrigger>
                 </TabsList>
               </div>
+
+              <TabsContent value="assumptions">
+                Assumptions
+              </TabsContent>
 
               <TabsContent value="compare">
                 <ComparisonChart buyData={buyResults} rentData={rentResults} />
@@ -125,7 +140,7 @@ const Calculator = () => {
                 {rentResults && <RentVisualizations monthlyData={rentResults} />}
               </TabsContent>
             </Tabs>
-          )}
+          
         </div>
       </main>
     </div>

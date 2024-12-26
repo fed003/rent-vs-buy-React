@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { useState } from 'react';
+// import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LineChart,
   Line,
@@ -25,7 +25,8 @@ interface YearlyData extends RentMonthlyData {
 }
 
 const RentVisualizations = ({ monthlyData }: RentVisualizationsProps) => {
-  const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
+  // const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
+  const timeUnit= 'years';
 
   const yearlyData: YearlyData[] = monthlyData
     .filter((_, index) => index % 12 === 0)

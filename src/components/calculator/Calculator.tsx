@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetHeader, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +7,7 @@ import CalculatorForm from './CalculatorForm';
 import BuyVisualizations from './BuyVisualizations';
 import RentVisualizations from './RentVisualizations';
 import ComparisonChart from './ComparisonChart';
+import Assumptions from './Assumptions';
 import { BuyInputs, RentInputs, BuyMonthlyData, RentMonthlyData, generateBuyMonthlyData, generateRentMonthlyData, CalculationInputs } from '@/utils/calculations';
 
 const STORAGE_KEYS = {
@@ -15,21 +16,25 @@ const STORAGE_KEYS = {
 };
 
 const Calculator = () => {
-  const [activeTab, setActiveTab] = useState<'assumptions' | 'compare' | 'buy' | 'rent'>('assumptions');
-  const [isOpen, setIsOpen] = useState(false);
+  const savedBuyInputs = localStorage.getItem(STORAGE_KEYS.BUY_INPUTS);
+  const savedRentInputs = localStorage.getItem(STORAGE_KEYS.RENT_INPUTS); 
   
-  const [buyInputs, setBuyInputs] = useState<BuyInputs | null>(null);
-  const [rentInputs, setRentInputs] = useState<RentInputs | null>(null);
+  const [buyInputs, setBuyInputs] = useState<BuyInputs | null>(savedBuyInputs ? JSON.parse(savedBuyInputs) : null);
+  const [rentInputs, setRentInputs] = useState<RentInputs | null>(savedRentInputs ? JSON.parse(savedRentInputs) : null);
   
-  const [buyResults, setBuyResults] = useState<BuyMonthlyData[] | null>(null);
-  const [rentResults, setRentResults] = useState<RentMonthlyData[] | null>(null);
-  const [disableTabs, setDisableTabs] = useState<boolean>(true);
-
   const getMonthsToCalculate = (inputs: CalculationInputs) => {
     const buyMonths = Number.parseInt(inputs.buyInputs.mortgageYears) * 12;
     return buyMonths;
   }
-
+  
+  const [buyResults, setBuyResults] = useState<BuyMonthlyData[] | null>(buyInputs ? generateBuyMonthlyData(buyInputs) : null);
+  const [rentResults, setRentResults] = useState<RentMonthlyData[] | null>(rentInputs && buyInputs ? 
+    generateRentMonthlyData(rentInputs, getMonthsToCalculate({ buyInputs: buyInputs, rentInputs: rentInputs }), buyResults) : null);
+  
+  const [isOpen, setIsOpen] = useState(!buyInputs || !rentInputs);
+  const [disableTabs, setDisableTabs] = useState<boolean>(isOpen);
+  const [activeTab, setActiveTab] = useState<'assumptions' | 'compare' | 'buy' | 'rent'>(isOpen ? 'assumptions' : 'compare');
+  
   const handleCalculations = (inputs: CalculationInputs, saveValues: boolean = true) => {
     console.log('Calculating...');
     console.log('Inputs:', inputs, saveValues);
@@ -60,19 +65,19 @@ const Calculator = () => {
   };
 
   // Load saved inputs on mount
-  useEffect(() => {
-    console.log('on mount');
-    const savedBuyInputs = localStorage.getItem(STORAGE_KEYS.BUY_INPUTS);
-    const savedRentInputs = localStorage.getItem(STORAGE_KEYS.RENT_INPUTS);
+  // useEffect(() => {
+  //   console.log('on mount');
+  //   const savedBuyInputs = localStorage.getItem(STORAGE_KEYS.BUY_INPUTS);
+  //   const savedRentInputs = localStorage.getItem(STORAGE_KEYS.RENT_INPUTS);
   
-    if (savedBuyInputs && savedRentInputs) {
-      console.log('Loading saved inputs...');
-      handleCalculations({
-        buyInputs: JSON.parse(savedBuyInputs) as BuyInputs,
-        rentInputs: JSON.parse(savedRentInputs) as RentInputs,
-      }, false);
-    }
-  }, []);
+  //   if (savedBuyInputs && savedRentInputs) {
+  //     console.log('Loading saved inputs...');
+  //     handleCalculations({
+  //       buyInputs: JSON.parse(savedBuyInputs) as BuyInputs,
+  //       rentInputs: JSON.parse(savedRentInputs) as RentInputs,
+  //     }, false);
+  //   }
+  // }, []);
 
   return (
     <div className="relative min-h-screen">
@@ -125,7 +130,7 @@ const Calculator = () => {
               </div>
 
               <TabsContent value="assumptions">
-                Assumptions
+                <Assumptions />
               </TabsContent>
 
               <TabsContent value="compare">

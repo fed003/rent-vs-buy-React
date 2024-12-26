@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InputWrapper from '@/components/ui/InputWrapper';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { BuyInputs, RentInputs, CalculationInputs } from '@/utils/calculations';
+import { BuyInputs, RentInputs, CalculationInputs, roundToDecimalsString } from '@/utils/calculations';
 
 type CalculationType = 'buy' | 'rent';
 
@@ -18,12 +18,13 @@ interface CalculatorFormProps {
 const CalculatorForm = ({ buyInputValues, rentInputValues, onCalculate }: CalculatorFormProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [calculationType, setCalculationType] = useState<CalculationType>('buy');
-   
+
   // Buy inputs state
   const [buyInputs, setBuyInputs] = useState<BuyInputs>(
     buyInputValues ??
     {
       housePrice: '650000',
+      downPaymentType: 'percent',
       downPaymentPercent: '20',
       downPaymentAmount: '130000',
       mortgageRate: '6.5',
@@ -69,12 +70,20 @@ const CalculatorForm = ({ buyInputValues, rentInputValues, onCalculate }: Calcul
   // Update advanced buy inputs when house price changes
   useEffect(() => {
     const housePrice = parseFloat(buyInputs.housePrice);
+
+    if (buyInputs.downPaymentType === 'percent') {
+      updateDownPayment(buyInputs.downPaymentPercent, 'percent');
+    }
+    else {
+      updateDownPayment(buyInputs.downPaymentAmount, 'amount');
+    }
+
     if (!isNaN(housePrice)) {
       setBuyInputs(prev => ({
         ...prev,
         annualInsurance: (housePrice * 0.004).toString(), // 0.4% of house price
-        propertyTax: (housePrice * 0.01).toString(), // 1% of house price
-        maintenanceAmount: (housePrice * 0.01).toString() // 1% of house price
+        propertyTax: (housePrice * 0.01195).toString(), // 1.195% of house price
+        maintenanceAmount: (housePrice * 0.01).toString(), // 1% of house price
       }));
     }
   }, [buyInputs.housePrice]);
@@ -88,24 +97,69 @@ const CalculatorForm = ({ buyInputValues, rentInputValues, onCalculate }: Calcul
   }, [buyInputs.downPaymentAmount, buyInputs.housePrice, buyInputs.buyClosingCostPercent]);
 
   // Handle down payment calculations
-  useEffect(() => {
-    if (buyInputs.housePrice && buyInputs.downPaymentPercent) {
-      const amount = (parseFloat(buyInputs.housePrice) * parseFloat(buyInputs.downPaymentPercent)) / 100;
-      setBuyInputs(prev => ({
-        ...prev,
-        downPaymentAmount: amount.toFixed(2)
-      }));
-    } else if (buyInputs.housePrice && buyInputs.downPaymentAmount) {
-      const percent = (parseFloat(buyInputs.downPaymentAmount) / parseFloat(buyInputs.housePrice)) * 100;
-      setBuyInputs(prev => ({
-        ...prev,
-        downPaymentPercent: percent.toFixed(2)
-      }));
+  // useEffect(() => {
+  //   if (buyInputs.housePrice && buyInputs.downPaymentPercent) {
+  //     const amount = (parseFloat(buyInputs.housePrice) * parseFloat(buyInputs.downPaymentPercent)) / 100;
+  //     setBuyInputs(prev => ({
+  //       ...prev,
+  //       downPaymentAmount: amount.toFixed(2)
+  //     }));
+  //   } else if (buyInputs.housePrice && buyInputs.downPaymentAmount) {
+  //     const percent = (parseFloat(buyInputs.downPaymentAmount) / parseFloat(buyInputs.housePrice)) * 100;
+  //     setBuyInputs(prev => ({
+  //       ...prev,
+  //       downPaymentPercent: percent.toFixed(2)
+  //     }));
+  //   }
+  // }, [buyInputs.housePrice, buyInputs.downPaymentPercent, buyInputs.downPaymentAmount]);
+
+  const setDownPaymentType = (type: 'percent' | 'amount') => {
+    setBuyInputs(prev => ({
+      ...prev,
+      downPaymentType: type
+    }));
+  }
+
+  const updateDownPayment = (newValue: string, type: 'percent' | 'amount') => {
+    if (!buyInputs.housePrice) return;
+    
+    let downPaymentAmount: number;
+    let downPaymentPercent: number;
+
+    if (type === 'percent') {
+      downPaymentPercent = parseFloat(newValue);
+      if (isNaN(downPaymentPercent)) return;
+      downPaymentAmount = (parseFloat(buyInputs.housePrice) * downPaymentPercent) / 100;
+    } else {
+      downPaymentAmount = parseFloat(newValue);
+      if (isNaN(downPaymentAmount)) return;
+      downPaymentPercent = (downPaymentAmount / parseFloat(buyInputs.housePrice)) * 100;
     }
-  }, [buyInputs.housePrice, buyInputs.downPaymentPercent, buyInputs.downPaymentAmount]);
+
+    setBuyInputs(prev => ({
+      ...prev,
+      downPaymentPercent: roundToDecimalsString(downPaymentPercent, 2),
+      downPaymentAmount: roundToDecimalsString(downPaymentAmount, 2),
+    }));
+  };
+
+  const setDownPaymentPercent = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    console.log('setting down payment percent', name, buyInputs.downPaymentType, value);
+    if (buyInputs.downPaymentType !== 'percent') return;
+    updateDownPayment(value, 'percent');
+  }
+
+  const setDownPaymentAmount = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    console.log('setting down payment amount', name, buyInputs.downPaymentType, value);
+    if (buyInputs.downPaymentType !== 'amount') return;
+    updateDownPayment(value, 'amount');
+  }
 
   const handleBuyInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    console.log('buy input change', name, value);
     setBuyInputs(prev => ({
       ...prev,
       [name]: value
@@ -149,17 +203,39 @@ const CalculatorForm = ({ buyInputValues, rentInputValues, onCalculate }: Calcul
             />
           </InputWrapper>
 
+          <InputWrapper label="Down Payment Type">
+            <div className="flex rounded-md overflow-hidden">
+              <Button
+                type="button"
+                variant={buyInputs.downPaymentType === 'percent' ? 'default' : 'secondary'}
+                onClick={() => setDownPaymentType('percent')}
+                className="flex-1 rounded-none"
+              >
+                Percent
+              </Button>
+              <Button
+                type="button"
+                variant={buyInputs.downPaymentType === 'amount' ? 'default' : 'secondary'}
+                onClick={() => setDownPaymentType('amount')}
+                className="flex-1 rounded-none"
+              >
+                Amount
+              </Button>
+            </div>
+          </InputWrapper>
+
           <div className="grid grid-cols-2 gap-4">
             <InputWrapper label="Down Payment %">
               <Input
                 type="number"
                 name="downPaymentPercent"
                 value={buyInputs.downPaymentPercent}
-                onChange={handleBuyInputChange}
+                onChange={setDownPaymentPercent}
                 min="0"
                 max="100"
                 step="0.1"
                 className="bg-background border-2 focus:border-primary hover:bg-accent hover:bg-opacity-50"
+                disabled={buyInputs.downPaymentType === 'amount'}
               />
             </InputWrapper>
             <InputWrapper label="Down Payment Amount">
@@ -167,8 +243,9 @@ const CalculatorForm = ({ buyInputValues, rentInputValues, onCalculate }: Calcul
                 type="number"
                 name="downPaymentAmount"
                 value={buyInputs.downPaymentAmount}
-                onChange={handleBuyInputChange}
+                onChange={setDownPaymentAmount}
                 className="bg-background border-2 focus:border-primary hover:bg-accent hover:bg-opacity-50"
+                disabled={buyInputs.downPaymentType === 'percent'}
               />
             </InputWrapper>
           </div>

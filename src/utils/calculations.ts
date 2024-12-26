@@ -1,6 +1,19 @@
+export const roundToDecimals = (value: number, decimals: number): number => {
+	const multiplier = Math.pow(10, decimals);
+	return Math.round(value * multiplier) / multiplier;
+};
+
+export const roundToDecimalsString = (
+	value: number,
+	decimals: number
+): string => {
+	return roundToDecimals(value, decimals).toString();
+};
+
 // Types
 export interface BuyInputs {
 	housePrice: string;
+	downPaymentType: "percent" | "amount";
 	downPaymentPercent: string;
 	downPaymentAmount: string;
 	mortgageRate: string;
@@ -237,7 +250,7 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 export const generateRentMonthlyData = (
 	inputs: RentInputs,
 	numberOfMonths: number,
-	buyMonthlyData?: BuyMonthlyData[]
+	buyMonthlyData?: BuyMonthlyData[] | null
 ): RentMonthlyData[] => {
 	const {
 		monthlyRent,

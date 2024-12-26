@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetHeader, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Menu } from "lucide-react";
@@ -82,6 +82,10 @@ const Calculator = () => {
           side="left" 
           className="w-[500px] overflow-y-auto border-r bg-card"
         >
+           <SheetHeader>
+            <SheetTitle>Calculator Inputs</SheetTitle>
+            <SheetDescription>Enter your details to calculate the cost of buying vs renting a home.</SheetDescription>
+           </SheetHeader>
           <div className="h-full py-6">
             <CalculatorForm 
               buyInputValues={buyInputs}

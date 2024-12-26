@@ -36,14 +36,15 @@ const RentVisualizations = ({ monthlyData }: RentVisualizationsProps) => {
 
   const displayData = timeUnit === 'years' ? yearlyData : monthlyData;
 
-  const headerContent = (
+  const headerContent = "";
+  /* const headerContent = (
     <Tabs defaultValue="years" className="w-48" onValueChange={(value) => setTimeUnit(value as 'years' | 'months')}>
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="years">Years</TabsTrigger>
         <TabsTrigger value="months">Months</TabsTrigger>
       </TabsList>
     </Tabs>
-  );
+  ); */
 
   return (
     <div className="space-y-4">

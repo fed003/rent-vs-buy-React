@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { useState } from 'react';
+// import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LineChart,
   Line,
@@ -20,7 +20,8 @@ interface ComparisonChartProps {
 }
 
 const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
-  const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
+  // const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
+  const timeUnit = 'years';
 
   // Prepare data for comparison
   const prepareComparisonData = () => {
@@ -49,6 +50,8 @@ const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
     </>
   );
 
+  const headerContent = "";
+  /* 
   const headerContent = (
     <Tabs defaultValue="years" className="w-48" onValueChange={(value) => setTimeUnit(value as 'years' | 'months')}>
       <TabsList className="grid w-full grid-cols-2">
@@ -57,6 +60,7 @@ const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
       </TabsList>
     </Tabs>
   );
+  */
 
   return (
     <ChartContainer 

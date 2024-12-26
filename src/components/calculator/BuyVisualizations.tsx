@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { useState } from 'react';
+// import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CustomTooltip from '@/components/ui/CustomTooltip';
 import {
   ComposedChart,
@@ -26,7 +26,8 @@ interface YearlyData extends BuyMonthlyData {
 }
 
 const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
-  const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
+  /* const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years'); */
+  const timeUnit = 'years';
 
   const yearlyData: YearlyData[] = monthlyData
     .filter((_, index) => index % 12 === 0)
@@ -37,14 +38,15 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
 
   const displayData = timeUnit === 'years' ? yearlyData : monthlyData;
 
-  const headerContent = (
+  const headerContent = "";
+  /* const headerContent = (
     <Tabs defaultValue="years" className="w-48" onValueChange={(value) => setTimeUnit(value as 'years' | 'months')}>
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="years">Years</TabsTrigger>
         <TabsTrigger value="months">Months</TabsTrigger>
       </TabsList>
     </Tabs>
-  );
+  ); */
 
   return (
     <div className="space-y-4">

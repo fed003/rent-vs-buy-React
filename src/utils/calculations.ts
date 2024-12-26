@@ -154,8 +154,8 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 	let currentInsurance = parseFloat(annualInsurance) / 12;
 	let currentPropertyTax = parseFloat(propertyTax) / 12;
 	let currentHOA = parseFloat(monthlyHOA);
-	let yearlyInterestPaid = 0;
-	let yearlyPropertyTaxPaid = 0;
+	// let yearlyInterestPaid = 0;
+	// let yearlyPropertyTaxPaid = 0;
 	let currentMaintenance = maintenancePercent
 		? (currentHouseValue * parseFloat(maintenancePercent)) / 100 / 12
 		: parseFloat(maintenanceAmount) / 12;
@@ -166,8 +166,8 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 		const monthlyPMI = calculatePMI(currentHouseValue, currentPrincipal);
 
 		// Accumulate yearly deductible amounts
-		yearlyInterestPaid += monthlyInterest;
-		yearlyPropertyTaxPaid += currentPropertyTax;
+		// yearlyInterestPaid += monthlyInterest;
+		// yearlyPropertyTaxPaid += currentPropertyTax;
 
 		//	Increase house value based on appreciation rate
 		const monthlyAppreciationRate =
@@ -176,18 +176,20 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 		currentHouseValue *= 1 + monthlyAppreciationRate;
 
 		// Calculate tax savings at the end of each year or on the final month
-		if ((month + 1) % 12 === 0 || month === totalMonths - 1) {
-			const annualTaxSavings = calculateTaxSavings(
-				yearlyInterestPaid,
-				yearlyPropertyTaxPaid,
-				parseFloat(federalTaxRate),
-				parseFloat(stateTaxRate)
-			);
-			cumulativeTaxSavings += annualTaxSavings;
-			// Reset yearly accumulators
-			yearlyInterestPaid = 0;
-			yearlyPropertyTaxPaid = 0;
-		}
+		let taxSavings = calculateTaxSavings(monthlyInterest, currentPropertyTax, parseFloat(federalTaxRate), parseFloat(stateTaxRate));
+		cumulativeTaxSavings += taxSavings;
+		// if ((month + 1) % 12 === 0 || month === totalMonths - 1) {
+		// 	const annualTaxSavings = calculateTaxSavings(
+		// 		yearlyInterestPaid,
+		// 		yearlyPropertyTaxPaid,
+		// 		parseFloat(federalTaxRate),
+		// 		parseFloat(stateTaxRate)
+		// 	);
+		// 	cumulativeTaxSavings += annualTaxSavings;
+		// 	// Reset yearly accumulators
+		// 	yearlyInterestPaid = 0;
+		// 	yearlyPropertyTaxPaid = 0;
+		// }
 
 		if (month > 0 && month % 12 === 0) {
 			currentInsurance *= 1 + parseFloat(insuranceIncreaseRate) / 100;
@@ -238,7 +240,8 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 			equity: currentHouseValue - currentPrincipal,
 			netValue: netValue,
 			cumulativePayments: cumulativePayments,
-			taxDeductions: yearlyInterestPaid + yearlyPropertyTaxPaid,
+			taxDeductions: monthlyInterest + currentPropertyTax,
+			// taxDeductions: yearlyInterestPaid + yearlyPropertyTaxPaid,
 			taxSavings: cumulativeTaxSavings,
 			netValueAfterTax: netValueAfterTax,
 		});
@@ -305,7 +308,7 @@ export const generateRentMonthlyData = (
 		cumulativePayments += totalMonthly;
 
 		// Calculate net value (investment value minus all payments made)
-		const netValue = currentInvestmentValue - cumulativePayments;
+		const netValue = currentInvestmentValue - cumulativePayments - principal;
 
 		monthlyData.push({
 			month: month + 1,

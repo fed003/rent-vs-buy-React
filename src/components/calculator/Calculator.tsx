@@ -8,7 +8,15 @@ import BuyVisualizations from './BuyVisualizations';
 import RentVisualizations from './RentVisualizations';
 import ComparisonChart from './ComparisonChart';
 import Assumptions from './Assumptions';
-import { BuyInputs, RentInputs, BuyMonthlyData, RentMonthlyData, generateBuyMonthlyData, generateRentMonthlyData, CalculationInputs } from '@/utils/calculations';
+import DataTable from './DataTable';
+import { 
+  BuyInputs, 
+  RentInputs, 
+  BuyMonthlyData, 
+  RentMonthlyData, 
+  generateBuyMonthlyData, 
+  generateRentMonthlyData, 
+  CalculationInputs } from '@/utils/calculations';
 
 const STORAGE_KEYS = {
   BUY_INPUTS: 'buyCalculatorInputs',
@@ -99,11 +107,12 @@ const Calculator = () => {
               className="mb-8"
             >
               <div className="flex justify-center">
-                <TabsList className="grid w-[600px] grid-cols-4">
+                <TabsList className="grid w-[600px] grid-cols-2 md:grid-cols-5">
                   <TabsTrigger value="assumptions" >Assumptions</TabsTrigger>
                     <TabsTrigger value="compare" disabled={disableTabs}>Comparison</TabsTrigger>
                     <TabsTrigger value="buy" disabled={disableTabs}>Purchase Analysis</TabsTrigger>
                     <TabsTrigger value="rent" disabled={disableTabs}>Rental Analysis</TabsTrigger>
+                    <TabsTrigger value="data" disabled={disableTabs}>Data Table</TabsTrigger>
                 </TabsList>
               </div>
 
@@ -121,6 +130,10 @@ const Calculator = () => {
               
               <TabsContent value="rent">
                 {rentResults && <RentVisualizations monthlyData={rentResults} />}
+              </TabsContent>
+
+              <TabsContent value="data">
+                {buyResults && rentResults && <DataTable buyData={buyResults} rentData={rentResults} />}
               </TabsContent>
             </Tabs>
           

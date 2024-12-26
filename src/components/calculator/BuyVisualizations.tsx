@@ -112,11 +112,12 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
           title="Monthly Expenses"
           legend={
             <>
-              <LegendItem color="#8884d8" label="Mortgage" />
-              <LegendItem color="#82ca9d" label="Insurance" />
+              <LegendItem color="#8884d8" label="Mortgage Principal" />
+              <LegendItem color="#82ca9d" label="Mortgage Interest" />              
               <LegendItem color="#ffc658" label="Property Tax" />
               <LegendItem color="#ff8042" label="HOA" />
               <LegendItem color="#8dd1e1" label="Maintenance" />
+              <LegendItem color="#d884d8" label="Insurance" />
             </>
           }
         >
@@ -181,6 +182,14 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
                 stackId="1"
                 stroke="#8dd1e1"
                 fill="#8dd1e1"
+              />
+              <Area
+                type="monotone"
+                dataKey="insurance"
+                name="Insurance"
+                stackId="1"
+                stroke="#d884d8"
+                fill="#d884d8"
               />
             </AreaChart>
           </ResponsiveContainer>

@@ -24,8 +24,10 @@ const ChartContainer = ({ title, children, legend, headerContent }: ChartContain
               {legend}
             </div>
           )}
-          <div className="h-[250px] landscape:sm:h-[250px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
-            {children}
+          <div className="overflow-x-auto">
+            <div className="h-[300px] min-w-[450px] landscape:sm:h-[250px] landscape:md:h-[350px] sm:h-[350px] md:h-[400px] lg:h-[450px] xl:h-[500px]">
+              {children}
+            </div>
           </div>
         </div>
       </CardContent>

@@ -73,7 +73,7 @@ const Calculator = () => {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent 
           side="left" 
-          className="w-[500px] overflow-y-auto border-r bg-card"
+          className="overflow-y-auto border-r bg-card"
         >
            <SheetHeader>
             <SheetTitle>Calculator Inputs</SheetTitle>

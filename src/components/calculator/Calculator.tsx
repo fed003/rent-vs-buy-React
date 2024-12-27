@@ -66,7 +66,7 @@ const Calculator = () => {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative">
       {/* Toggle Button - Always visible */}
       <Button 
         variant="outline" 

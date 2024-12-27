@@ -67,3 +67,20 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+table.table-striped > tbody > tr:nth-child(even) {
+	@apply bg-gray-100 dark:bg-gray-900;
+}
+table.table-hover > tbody > tr:hover {
+	@apply bg-gray-200 dark:bg-gray-900;
+}
+
+table.table-bordered > tbody {
+	tr {
+		@apply border-t border-gray-300 dark:border-gray-900;
+
+		td {
+			@apply border-x border-gray-300 dark:border-gray-900;
+		}
+	}
+}

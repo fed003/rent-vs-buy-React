@@ -1,4 +1,4 @@
-import './styles/globals.css';
+// import './styles/globals.css';
 import Calculator from './components/calculator/Calculator';
 
 function App() {

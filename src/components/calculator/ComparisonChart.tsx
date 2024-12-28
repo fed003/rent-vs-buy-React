@@ -33,8 +33,10 @@ const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
         month: index + 1,
         year: Math.floor(index / 12) + 1,
         buyNetValue: buyMonth.netValue,
-        buyNetValueAfterTax: buyMonth.netValueAfterTax,
+        buyNetValueAfterTax: buyMonth.netValueAfterDeductions,
+        buyAfterCapitalGainsTax: buyMonth.netValueAfterTax,
         rentNetValue: rentMonth.netValue,
+        rentAfterCapitalGainsTax: rentMonth.netValueAfterTax,
         buyMonthlyTotal: buyMonth.totalMonthly,
         rentMonthlyTotal: rentMonth.totalMonthly
       };
@@ -47,9 +49,11 @@ const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
 
   const legend = (
     <>
+      <LegendItem color="#8884d8" label="Buy Net Value After Deductions" />
       <LegendItem color="#82ca9d" label="Buy Net Value" />
-      <LegendItem color="#8884d8" label="Buy Net Value (After Tax)" />
+      <LegendItem color="#686868" label="Buy After Capital Gains Tax" />
       <LegendItem color="#ff8042" label="Rent Net Value" />
+      <LegendItem color="#c76838" label="Rent After Capital Gains Tax" />
     </>
   );
 
@@ -96,14 +100,6 @@ const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
             <Tooltip content={(props) => <CustomTooltip {...props} timeUnit={timeUnit} />} />
             <Line
               type="monotone"
-              dataKey="buyNetValue"
-              name="Buy Net Value"
-              stroke="#82ca9d"
-              strokeWidth={1.5}
-              dot={false}
-            />
-            <Line
-              type="monotone"
               dataKey="buyNetValueAfterTax"
               name="Buy Net Value (After Tax)"
               stroke="#8884d8"
@@ -112,9 +108,33 @@ const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
             />
             <Line
               type="monotone"
+              dataKey="buyNetValue"
+              name="Buy Net Value"
+              stroke="#82ca9d"
+              strokeWidth={1.5}
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="buyAfterCapitalGainsTax"
+              name="Buy After Capital Gains Tax"
+              stroke="#686868"
+              strokeWidth={1.5}
+              dot={false}
+            />
+            <Line
+              type="monotone"
               dataKey="rentNetValue"
               name="Rent Net Value"
               stroke="#ff8042"
+              strokeWidth={1.5}
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="rentAfterCapitalGainsTax"
+              name="Rent After Capital Gains Tax"
+              stroke="#c76838"
               strokeWidth={1.5}
               dot={false}
             />

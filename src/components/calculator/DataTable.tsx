@@ -46,6 +46,7 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
       'Net Value',
       'Net Value After Tax',
       'Rental Payments',
+      'Rental Totals',
       'Investment Principal',
       'Investment Interest',
       'Investment Total',
@@ -66,6 +67,7 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
       buyRecord.netValue,
       buyRecord.netValueAfterTax,
       rentDisplayData[index].totalMonthly,
+      rentDisplayData[index].cumulativePayments,
       rentDisplayData[index].principal,
       rentDisplayData[index].interestToDate,
       rentDisplayData[index].investmentValue,
@@ -122,6 +124,7 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
                 <th className="py-3 px-4 text-right font-medium">Net Value</th>
                 <th className="py-3 px-4 text-right font-medium">Net Value After Tax</th>
                 <th className="py-3 px-4 text-right font-medium">Rental Payments</th>
+                <th className="py-3 px-4 text-right font-medium">Rental Totals</th>
                 <th className="py-3 px-4 text-right font-medium">Investment Principal</th>
                 <th className="py-3 px-4 text-right font-medium">Investment Interest</th>
                 <th className="py-3 px-4 text-right font-medium">Investment Total</th>
@@ -147,6 +150,7 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.netValue)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.netValueAfterTax)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(rentDisplayData[index].totalMonthly)}</td>
+                  <td className="py-2 px-4 text-right border-x">{formatCurrency(rentDisplayData[index].cumulativePayments)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(rentDisplayData[index].principal)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(rentDisplayData[index].interestToDate)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(rentDisplayData[index].investmentValue)}</td>

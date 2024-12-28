@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { RentMonthlyData } from '@/utils/calculations';
+import { RentMonthlyData, filterData } from '@/utils/calculations';
 import { formatCurrency, dfltMargins } from '@/utils/visualizations';
 import CustomTooltip from '@/components/ui/CustomTooltip';
 import ChartContainer, { LegendItem } from './ChartContainer';
@@ -28,12 +28,13 @@ const RentVisualizations = ({ monthlyData }: RentVisualizationsProps) => {
   // const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
   const timeUnit= 'years';
 
-  const yearlyData: YearlyData[] = monthlyData
-    .filter((_, index) => index % 12 === 0)
-    .map((month, index) => ({
-      ...month,
-      year: index + 1
-    }));
+  const yearlyData: YearlyData[] = filterData(monthlyData);
+  // const yearlyData: YearlyData[] = monthlyData
+  //   .filter((_, index) => index % 12 === 0)
+  //   .map((month, index) => ({
+  //     ...month,
+  //     year: index + 1
+  //   }));
 
   const displayData = timeUnit === 'years' ? yearlyData : monthlyData;
 

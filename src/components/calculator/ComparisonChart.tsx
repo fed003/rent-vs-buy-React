@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { BuyMonthlyData, RentMonthlyData } from '@/utils/calculations';
+import { BuyMonthlyData, RentMonthlyData, filterData } from '@/utils/calculations';
 import { formatCurrency, dfltMargins } from '@/utils/visualizations';
 import CustomTooltip from '@/components/ui/CustomTooltip';
 import ChartContainer, { LegendItem } from './ChartContainer';
@@ -34,13 +34,16 @@ const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
         year: Math.floor(index / 12) + 1,
         buyNetValue: buyMonth.netValue,
         buyNetValueAfterTax: buyMonth.netValueAfterTax,
-        rentNetValue: rentMonth.netValue
+        rentNetValue: rentMonth.netValue,
+        buyMonthlyTotal: buyMonth.totalMonthly,
+        rentMonthlyTotal: rentMonth.totalMonthly
       };
     });
   };
 
   const displayData = prepareComparisonData();
-  const yearlyData = displayData.filter((_, index) => index % 12 === 0);
+  // const yearlyData = displayData.filter((_, index) => index % 12 === 0);
+  const yearlyData = filterData(displayData);
 
   const legend = (
     <>
@@ -63,60 +66,113 @@ const ComparisonChart = ({ buyData, rentData }: ComparisonChartProps) => {
   */
 
   return (
-    <ChartContainer 
-      title="Net Value Comparison"
-      legend={legend}
-      headerContent={headerContent}
-    >    
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={timeUnit === 'years' ? yearlyData : displayData}
-          margin={dfltMargins}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey={timeUnit === 'years' ? 'year' : 'month'}
-            label={{ 
-              value: timeUnit === 'years' ? 'Years' : 'Months', 
-              position: 'bottom', 
-              offset: 0,
-              fontSize: 12 
-            }}
-            tick={{ fontSize: 12 }}
-          />
-          <YAxis 
-            tickFormatter={formatCurrency}
-            width={65}
-            tick={{ fontSize: 12 }}
-          />
-          <Tooltip content={(props) => <CustomTooltip {...props} timeUnit={timeUnit} />} />
-          <Line
-            type="monotone"
-            dataKey="buyNetValue"
-            name="Buy Net Value"
-            stroke="#82ca9d"
-            strokeWidth={1.5}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="buyNetValueAfterTax"
-            name="Buy Net Value (After Tax)"
-            stroke="#8884d8"
-            strokeWidth={1.5}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="rentNetValue"
-            name="Rent Net Value"
-            stroke="#ff8042"
-            strokeWidth={1.5}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </ChartContainer>
+    <div className="grid grid-cols-1 gap-4">
+      <ChartContainer 
+        title="Net Value Comparison"
+        legend={legend}
+        headerContent={headerContent}
+      >    
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={timeUnit === 'years' ? yearlyData : displayData}
+            margin={dfltMargins}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey={timeUnit === 'years' ? 'year' : 'month'}
+              label={{ 
+                value: timeUnit === 'years' ? 'Years' : 'Months', 
+                position: 'bottom', 
+                offset: 0,
+                fontSize: 12 
+              }}
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis 
+              tickFormatter={formatCurrency}
+              width={65}
+              tick={{ fontSize: 12 }}
+            />
+            <Tooltip content={(props) => <CustomTooltip {...props} timeUnit={timeUnit} />} />
+            <Line
+              type="monotone"
+              dataKey="buyNetValue"
+              name="Buy Net Value"
+              stroke="#82ca9d"
+              strokeWidth={1.5}
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="buyNetValueAfterTax"
+              name="Buy Net Value (After Tax)"
+              stroke="#8884d8"
+              strokeWidth={1.5}
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="rentNetValue"
+              name="Rent Net Value"
+              stroke="#ff8042"
+              strokeWidth={1.5}
+              dot={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+    
+      <ChartContainer
+        title="Monthly Payments Over Time"
+        legend={
+          <>
+            <LegendItem color="#82ca9d" label="Buy Monthly Payment" />
+            <LegendItem color="#ff8042" label="Rent Monthly Payment" />
+          </>
+        }
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={timeUnit === 'years' ? yearlyData : displayData}
+            margin={dfltMargins}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey={timeUnit === 'years' ? 'year' : 'month'}
+              label={{ 
+                value: timeUnit === 'years' ? 'Years' : 'Months', 
+                position: 'bottom', 
+                offset: 0,
+                fontSize: 12 
+              }}
+              tick={{ fontSize: 12 }}
+            />
+            <YAxis 
+              tickFormatter={formatCurrency}
+              width={65}
+              tick={{ fontSize: 12 }}
+            />
+            <Tooltip content={(props) => <CustomTooltip {...props} timeUnit={timeUnit} />} />
+            <Line
+              type="monotone"
+              dataKey="buyMonthlyTotal"
+              name="Buy Monthly Payment"
+              stroke="#82ca9d"
+              strokeWidth={1.5}
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="rentMonthlyTotal"
+              name="Rent Monthly Payment" 
+              stroke="#ff8042"
+              strokeWidth={1.5}
+              dot={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+    </div>
   );
 };
 

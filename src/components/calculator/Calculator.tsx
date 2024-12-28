@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetHeader, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,14 +14,16 @@ import {
   RentInputs, 
   BuyMonthlyData, 
   RentMonthlyData, 
-  generateBuyMonthlyData, 
-  generateRentMonthlyData, 
-  CalculationInputs } from '@/utils/calculations';
+  generateMonthlyData, 
+  CalculationInputs,
+} from '@/utils/calculations';
 
 const STORAGE_KEYS = {
   BUY_INPUTS: 'buyCalculatorInputs',
   RENT_INPUTS: 'rentCalculatorInputs'
 };
+
+type TabValue = 'assumptions' | 'compare' | 'buy' | 'rent' | 'data';
 
 const Calculator = () => {
   const savedBuyInputs = localStorage.getItem(STORAGE_KEYS.BUY_INPUTS);
@@ -29,29 +31,52 @@ const Calculator = () => {
   
   const [buyInputs, setBuyInputs] = useState<BuyInputs | null>(savedBuyInputs ? JSON.parse(savedBuyInputs) : null);
   const [rentInputs, setRentInputs] = useState<RentInputs | null>(savedRentInputs ? JSON.parse(savedRentInputs) : null);
-  
-  const getMonthsToCalculate = (inputs: CalculationInputs) => {
-    const buyMonths = Number.parseInt(inputs.buyInputs.mortgageYears) * 12;
-    return buyMonths;
-  }
-  
-  const [buyResults, setBuyResults] = useState<BuyMonthlyData[] | null>(buyInputs ? generateBuyMonthlyData(buyInputs) : null);
-  const [rentResults, setRentResults] = useState<RentMonthlyData[] | null>(rentInputs && buyInputs ? 
-    generateRentMonthlyData(rentInputs, getMonthsToCalculate({ buyInputs: buyInputs, rentInputs: rentInputs }), buyResults) : null);
+    
+  const results = buyInputs && rentInputs ? generateMonthlyData({
+    buyInputs, rentInputs
+  }) : undefined;
+
+  const [buyResults, setBuyResults] = useState<BuyMonthlyData[] | null>(results?.buyData ?? null);
+  const [rentResults, setRentResults] = useState<RentMonthlyData[] | null>(results?.rentData ?? null);
   
   const [isOpen, setIsOpen] = useState(!buyInputs || !rentInputs);
   const [disableTabs, setDisableTabs] = useState<boolean>(isOpen);
-  const [activeTab, setActiveTab] = useState<'assumptions' | 'compare' | 'buy' | 'rent'>(isOpen ? 'assumptions' : 'compare');
+  const [activeTab, setActiveTab] = useState<TabValue>(getInitialTab());
   
+  function getInitialTab(): TabValue {
+    const hash = window.location.hash.replace('#', '');
+    return (hash as TabValue) || (isOpen ? 'assumptions' : 'compare');
+  }
+
+  useEffect(() => {
+    // Update URL when tab changes
+    window.location.hash = activeTab;
+  }, [activeTab]);
+
+  useEffect(() => {
+    // Listen for URL changes
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setActiveTab(hash as TabValue);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const handleCalculations = (inputs: CalculationInputs, saveValues: boolean = true) => {
     setBuyInputs(inputs.buyInputs);
     setRentInputs(inputs.rentInputs);
 
-    const generatedBuyResults = generateBuyMonthlyData(inputs.buyInputs);
-    setBuyResults(generatedBuyResults);
+    const results = generateMonthlyData({ 
+      buyInputs: inputs.buyInputs, 
+      rentInputs: inputs.rentInputs 
+    }); 
 
-    const generatedRentResults = generateRentMonthlyData(inputs.rentInputs, getMonthsToCalculate(inputs), generatedBuyResults);
-    setRentResults(generatedRentResults);
+    setBuyResults(results.buyData);
+    setRentResults(results.rentData);
         
     if (buyResults && rentResults) {
       setDisableTabs(false);
@@ -103,7 +128,7 @@ const Calculator = () => {
           
             <Tabs 
               value={activeTab}
-              onValueChange={(value) => setActiveTab(value as 'assumptions' |'compare' | 'buy' | 'rent')}
+              onValueChange={(value) => setActiveTab(value as TabValue)}
               className="mb-8"
             >
               <div className="flex justify-center">

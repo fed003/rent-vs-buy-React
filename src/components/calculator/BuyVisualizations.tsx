@@ -13,7 +13,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import { BuyMonthlyData } from '@/utils/calculations';
+import { BuyMonthlyData, filterData } from '@/utils/calculations';
 import { formatCurrency, dfltMargins } from '@/utils/visualizations';
 import ChartContainer, { LegendItem } from './ChartContainer';
 
@@ -29,12 +29,13 @@ const BuyVisualizations = ({ monthlyData }: BuyVisualizationsProps) => {
   /* const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years'); */
   const timeUnit = 'years';
 
-  const yearlyData: YearlyData[] = monthlyData
-    .filter((_, index) => index % 12 === 0)
-    .map((month, index) => ({
-      ...month,
-      year: index + 1
-    }));
+  const yearlyData: YearlyData[] = filterData(monthlyData);
+  // const yearlyData: YearlyData[] = monthlyData
+  //   .filter((_, index) => index % 12 === 0)
+  //   .map((month, index) => ({
+  //     ...month,
+  //     year: index + 1
+  //   }));
 
   const displayData = timeUnit === 'years' ? yearlyData : monthlyData;
 

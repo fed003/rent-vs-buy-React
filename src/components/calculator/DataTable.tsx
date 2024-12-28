@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { BuyMonthlyData, RentMonthlyData } from '@/utils/calculations';
+import { BuyMonthlyData, RentMonthlyData, filterData } from '@/utils/calculations';
 import { formatCurrency } from '@/utils/visualizations';
 
 interface DataTableProps {
@@ -13,15 +13,16 @@ interface DataTableProps {
 const DataTable = ({ buyData, rentData }: DataTableProps) => {
   const [timeUnit, setTimeUnit] = useState<'years' | 'months'>('years');
     
-  function filterData(data: any[], timeUnit: 'years' | 'months') {
+  function filterDataTableData(data: any[], timeUnit: 'years' | 'months') {
     if (timeUnit === 'years') {
-      return data.filter((_, index) => index % 12 === 0);
+      // return data.filter((_, index) => (index + 1) % 12 === 0);
+      return filterData(data);
     }
     return data;
   }
 
-  const buyDisplayData = filterData(buyData, timeUnit);
-  const rentDisplayData = filterData(rentData, timeUnit);
+  const buyDisplayData = filterDataTableData(buyData, timeUnit);
+  const rentDisplayData = filterDataTableData(rentData, timeUnit);
 
   const headerContent = (
     <Tabs defaultValue="years" className="w-48" onValueChange={(value) => setTimeUnit(value as 'years' | 'months')}>
@@ -41,6 +42,7 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
       'Total Monthly',
       'Cumulative Total',
       'Cumulative Tax Savings',
+      'Buy Investment Total',
       'Net Value',
       'Net Value After Tax',
       'Rental Payments',
@@ -59,7 +61,8 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
       buyRecord.payment,
       buyRecord.totalMonthly,
       buyRecord.cumulativePayments,
-      buyRecord.taxSavings,
+      buyRecord.cumulativeTaxSavings,
+      buyRecord.investmentValue,
       buyRecord.netValue,
       buyRecord.netValueAfterTax,
       rentDisplayData[index].totalMonthly,
@@ -72,9 +75,10 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => 
-        typeof cell === 'number' ? formatCurrency(cell).replace('$', '') : cell
-      ).join(','))
+        ...rows
+      // ...rows.map(row => row.map(cell => 
+      //   typeof cell === 'number' ? formatCurrency(cell).replace('$', '') : cell
+      // ).join(',')
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -114,6 +118,7 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
                 <th className="py-3 px-4 text-right font-medium">Total Monthly</th>
                 <th className="py-3 px-4 text-right font-medium">Cumulative Total</th>
                 <th className="py-3 px-4 text-right font-medium">Cumulative Tax Savings</th>
+                <th className="py-3 px-4 text-right font-medium">Investment Total</th>
                 <th className="py-3 px-4 text-right font-medium">Net Value</th>
                 <th className="py-3 px-4 text-right font-medium">Net Value After Tax</th>
                 <th className="py-3 px-4 text-right font-medium">Rental Payments</th>
@@ -137,7 +142,8 @@ const DataTable = ({ buyData, rentData }: DataTableProps) => {
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.payment)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.totalMonthly)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.cumulativePayments)}</td>
-                  <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.taxSavings)}</td>
+                  <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.cumulativeTaxSavings)}</td>
+                  <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.investmentValue)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.netValue)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(buyRecord.netValueAfterTax)}</td>
                   <td className="py-2 px-4 text-right border-x">{formatCurrency(rentDisplayData[index].totalMonthly)}</td>

@@ -1,3 +1,13 @@
+export const filterData = (data: any[]) =>{
+	return data
+		.filter((_, index) => (index + 1) % 12 === 0)
+		.map((month, index) => ({
+			...month,
+			year: index + 1
+		}));
+}
+
+
 export const roundToDecimals = (value: number, decimals: number): number => {
 	const multiplier = Math.pow(10, decimals);
 	return Math.round(value * multiplier) / multiplier;
@@ -65,7 +75,11 @@ export interface BuyMonthlyData {
 	cumulativePayments: number; // New field to track total payments made
 	taxDeductions: number; // New field: accumulated tax deductions
 	taxSavings: number; // New field: value of tax savings
+	cumulativeTaxSavings: number,
 	netValueAfterTax: number; // New field: net value including tax benefits
+	investmentPrincipal: number;
+	investmentInterest: number;
+	investmentValue: number;
 }
 
 export interface RentMonthlyData {
@@ -114,6 +128,11 @@ const calculateTaxSavings = (
 	return deductibleAmount * combinedTaxRate;
 };
 
+const  calculateMonthlyAppreciationRate = (appreciationRate: string, month: number): number => {
+	return Math.pow(1 + parseFloat(appreciationRate) / 100, ((month % 12) + 1) / 12) -
+	Math.pow(1 + parseFloat(appreciationRate) / 100, (month % 12) / 12);
+}
+
 export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 	const {
 		housePrice,
@@ -127,7 +146,6 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 		propertyTaxIncreaseRate,
 		monthlyHOA,
 		hoaIncreaseRate,
-		sellClosingCostPercent,
 		maintenancePercent,
 		maintenanceAmount,
 		federalTaxRate,
@@ -154,8 +172,7 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 	let currentInsurance = parseFloat(annualInsurance) / 12;
 	let currentPropertyTax = parseFloat(propertyTax) / 12;
 	let currentHOA = parseFloat(monthlyHOA);
-	// let yearlyInterestPaid = 0;
-	// let yearlyPropertyTaxPaid = 0;
+	
 	let currentMaintenance = maintenancePercent
 		? (currentHouseValue * parseFloat(maintenancePercent)) / 100 / 12
 		: parseFloat(maintenanceAmount) / 12;
@@ -165,32 +182,15 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 		const monthlyPrincipal = monthlyPayment - monthlyInterest;
 		const monthlyPMI = calculatePMI(currentHouseValue, currentPrincipal);
 
-		// Accumulate yearly deductible amounts
-		// yearlyInterestPaid += monthlyInterest;
-		// yearlyPropertyTaxPaid += currentPropertyTax;
-
 		//	Increase house value based on appreciation rate
-		const monthlyAppreciationRate =
-			Math.pow(1 + parseFloat(appreciationRate) / 100, (month + 1) / 12) -
-			Math.pow(1 + parseFloat(appreciationRate) / 100, month / 12);
+		const monthlyAppreciationRate = calculateMonthlyAppreciationRate(appreciationRate, month);
 		currentHouseValue *= 1 + monthlyAppreciationRate;
 
 		// Calculate tax savings at the end of each year or on the final month
 		let taxSavings = calculateTaxSavings(monthlyInterest, currentPropertyTax, parseFloat(federalTaxRate), parseFloat(stateTaxRate));
 		cumulativeTaxSavings += taxSavings;
-		// if ((month + 1) % 12 === 0 || month === totalMonths - 1) {
-		// 	const annualTaxSavings = calculateTaxSavings(
-		// 		yearlyInterestPaid,
-		// 		yearlyPropertyTaxPaid,
-		// 		parseFloat(federalTaxRate),
-		// 		parseFloat(stateTaxRate)
-		// 	);
-		// 	cumulativeTaxSavings += annualTaxSavings;
-		// 	// Reset yearly accumulators
-		// 	yearlyInterestPaid = 0;
-		// 	yearlyPropertyTaxPaid = 0;
-		// }
-
+		
+		//	Update insurance, property tax, and HOA annually
 		if (month > 0 && month % 12 === 0) {
 			currentInsurance *= 1 + parseFloat(insuranceIncreaseRate) / 100;
 			currentPropertyTax *= 1 + parseFloat(propertyTaxIncreaseRate) / 100;
@@ -215,15 +215,6 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 		// Update cumulative payments
 		cumulativePayments += totalMonthly;
 
-		// Calculate selling costs
-		const sellingCosts =
-			currentHouseValue * (parseFloat(sellClosingCostPercent) / 100);
-
-		// Calculate net values
-		const netValue =
-			currentHouseValue - currentPrincipal - sellingCosts - cumulativePayments;
-		const netValueAfterTax = netValue + cumulativeTaxSavings;
-
 		monthlyData.push({
 			month: month + 1,
 			houseValue: currentHouseValue,
@@ -238,12 +229,17 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 			maintenance: currentMaintenance,
 			totalMonthly: totalMonthly,
 			equity: currentHouseValue - currentPrincipal,
-			netValue: netValue,
 			cumulativePayments: cumulativePayments,
 			taxDeductions: monthlyInterest + currentPropertyTax,
 			// taxDeductions: yearlyInterestPaid + yearlyPropertyTaxPaid,
-			taxSavings: cumulativeTaxSavings,
-			netValueAfterTax: netValueAfterTax,
+			taxSavings: taxSavings,
+			cumulativeTaxSavings: cumulativeTaxSavings,
+			netValue: 0,
+			netValueAfterTax: 0,
+			//	All investment data starts at 0, will add when we go through the rent data
+			investmentPrincipal: 0,
+			investmentInterest:0,
+			investmentValue: 0
 		});
 
 		currentPrincipal -= monthlyPrincipal;
@@ -256,47 +252,19 @@ export const generateBuyMonthlyData = (inputs: BuyInputs): BuyMonthlyData[] => {
 export const generateRentMonthlyData = (
 	inputs: RentInputs,
 	numberOfMonths: number,
-	buyMonthlyData?: BuyMonthlyData[] | null
 ): RentMonthlyData[] => {
 	const {
 		monthlyRent,
 		rentIncreaseRate,
 		rentersInsurance,
-		initialInvestment,
-		investmentReturnRate,
 	} = inputs;
 
 	let currentRent = parseFloat(monthlyRent);
 	let currentInsurance = parseFloat(rentersInsurance) / 12;
-	let principal = parseFloat(initialInvestment);
-	let interestToDate = 0;
-	let currentInvestmentValue = principal;
 	let cumulativePayments = 0;
 	const monthlyData: RentMonthlyData[] = [];
 
 	for (let month = 0; month < numberOfMonths; month++) {
-		// Calculate monthly investment return (compounding monthly)
-		const monthlyReturnRate =
-			Math.pow(1 + parseFloat(investmentReturnRate) / 100, 1 / 12) - 1;
-		const monthInterest = currentInvestmentValue * monthlyReturnRate;
-
-		// Add difference between rent and mortgage to investment value
-		if (buyMonthlyData && buyMonthlyData[month]) {
-			const monthlyDiff =
-				buyMonthlyData[month].totalMonthly - (currentRent + currentInsurance);
-			if (monthlyDiff > 0) {
-				//	Add the difference, but don't compound it yet
-				principal += monthlyDiff;
-				// Add the difference and compound it immediately
-				// principal += monthlyDiff * (1 + monthlyReturnRate);
-			}
-		}
-
-		//	Update the interest paid to date
-		interestToDate += monthInterest;
-		// Update investment value
-		currentInvestmentValue = principal + interestToDate;
-
 		// Update rent and insurance annually
 		if (month > 0 && month % 12 === 0) {
 			currentRent *= 1 + parseFloat(rentIncreaseRate) / 100;
@@ -307,21 +275,80 @@ export const generateRentMonthlyData = (
 		const totalMonthly = currentRent + currentInsurance;
 		cumulativePayments += totalMonthly;
 
-		// Calculate net value (investment value minus all payments made)
-		const netValue = currentInvestmentValue - cumulativePayments - principal;
-
 		monthlyData.push({
 			month: month + 1,
 			rent: currentRent,
 			insurance: currentInsurance,
-			principal: principal,
-			interestToDate: interestToDate,
-			investmentValue: currentInvestmentValue,
 			totalMonthly: totalMonthly,
-			netValue: netValue,
 			cumulativePayments: cumulativePayments,
+			principal: 0,
+			interestToDate: 0,
+			investmentValue: 0,
+			netValue: 0,
 		});
 	}
 
 	return monthlyData;
+};
+
+export const generateMonthlyData = (inputs: CalculationInputs): {
+	buyData: BuyMonthlyData[];
+	rentData: RentMonthlyData[];
+} => {
+	const { buyInputs, rentInputs } = inputs;
+	const numberOfMonths = parseInt(buyInputs.mortgageYears) * 12;
+	
+	// Initialize both datasets
+	let buyData = generateBuyMonthlyData(buyInputs);
+	let rentData = generateRentMonthlyData(rentInputs, numberOfMonths);
+	
+	//	We'll have to store the first month where we have an investment on the buy side, so we can calcualte the 
+	//	interest rate properly
+	let firstBuyInvestmentMonth = 0;
+
+	//	Set the initial investment principal and total value
+	rentData[0].principal = parseFloat(buyInputs.downPaymentAmount) + (parseFloat(buyInputs.housePrice) * parseFloat(buyInputs.buyClosingCostPercent) / 100);
+	rentData[0].investmentValue = rentData[0].principal;
+
+	// For each month, calculate the cost differential and invest it
+	for (let month = 1; month < numberOfMonths; month++) {
+		const buyMonthly = buyData[month].totalMonthly;
+		const rentMonthly = rentData[month].totalMonthly;
+		const monthlyDiff = buyMonthly - rentMonthly;
+		
+		//	Generate the new rental investment data
+		const monthlyReturnRate = calculateMonthlyAppreciationRate(rentInputs.investmentReturnRate, month);
+		// const rentResults = generateMonthlyInvestmentData(rentData[month - 1].principal, monthlyReturnRate, monthlyDiff > 0 ? monthlyDiff : 0);
+		const newRentInterest = rentData[month-1].investmentValue * monthlyReturnRate;
+		//	Add any new investment principal
+		rentData[month].principal = rentData[month-1].principal + (monthlyDiff > 0 ? monthlyDiff : 0);
+		//	Add the new month's interest
+		rentData[month].interestToDate = rentData[month - 1].interestToDate + newRentInterest;
+		//	Update the new total value
+		rentData[month].investmentValue = rentData[month].principal + rentData[month].interestToDate;
+		//	Calculate the new value
+		rentData[month].netValue = rentData[month].investmentValue - rentData[month].cumulativePayments;
+
+		//	Generate the new buy investment data, but only if buy costs have fallen below rent costs
+		if (monthlyDiff < 0) {
+			if (firstBuyInvestmentMonth === 0) {
+				firstBuyInvestmentMonth = month;
+			}
+			const buyMonthlyReturnRate = calculateMonthlyAppreciationRate(rentInputs.investmentReturnRate, month - firstBuyInvestmentMonth);
+			// const buyResults = generateMonthlyInvestmentData(buyData[month - 1].investmentPrincipal, buyMonthlyReturnRate, -monthlyDiff);
+			const newBuyInterest = buyData[month-1].investmentValue * buyMonthlyReturnRate;
+			buyData[month].investmentPrincipal = buyData[month-1].investmentPrincipal + (-monthlyDiff);
+			buyData[month].investmentInterest = buyData[month - 1].investmentInterest + newBuyInterest;
+			buyData[month].investmentValue = buyData[month].investmentPrincipal + buyData[month].investmentInterest;
+		}
+		// Calculate selling costs
+		const sellingCosts = buyData[month].houseValue * (parseFloat(buyInputs.sellClosingCostPercent) / 100);
+		// Calculate net values
+		buyData[month].netValue = buyData[month].equity - sellingCosts - buyData[month].cumulativePayments;
+		// const netValue =
+		// 	buyData[month].houseValue - currentPrincipal - sellingCosts - cumulativePayments;
+		buyData[month].netValueAfterTax = buyData[month].netValue + buyData[month].cumulativeTaxSavings;
+	}
+
+	return { buyData, rentData };
 };
